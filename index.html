@@ -1,0 +1,1511 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Zona Escolar Inteligente</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Noto+Serif:wght@600;700&display=swap">
+<style>
+/* Layout: portada con panel institucional + tarjeta de acceso; app con barra lateral guinda, barra superior fija y contenido en rejilla */
+:root{
+  --guinda:#9F2241; --guinda-d:#691C32; --oro:#BC955C; --oro-l:#E9DCC6; --verde:#235B4E;
+  --bg:#F5F2EE; --surface:#FFFFFF; --surface-2:#F1ECE6; --line:#E2D9CF; --fg:#221B1E; --muted:#6C6266;
+  --accent:#9F2241; --accent-2:#691C32; --accent-soft:#F6E7EB; --accent-fg:#FFFFFF;
+  --side:#5A1830; --side-2:#4A1427; --side-fg:#F5EAEE; --side-muted:#D9B9C4;
+  --ok:#1E7A4F; --ok-bg:#E3F2EA; --warn:#9A6212; --warn-bg:#FBEFD9; --bad:#B42318; --bad-bg:#FBE5E2; --info:#2B5C8A; --info-bg:#E2ECF6; --neutral-bg:#ECE7E2;
+  --shadow:0 1px 2px rgba(60,20,35,.06),0 4px 14px rgba(60,20,35,.06);
+  --f-ui:"Montserrat",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --f-display:"Noto Serif",Georgia,"Times New Roman",serif;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#161214; --surface:#201A1D; --surface-2:#2A2226; --line:#3A3035; --fg:#F2ECEE; --muted:#AEA2A7;
+  --accent:#D9567A; --accent-2:#F08AA6; --accent-soft:#3A1E28; --accent-fg:#1A0A10;
+  --oro:#D5B07B; --oro-l:#3A3125; --side:#1C0F15; --side-2:#140A0F; --side-fg:#F2E4E9; --side-muted:#B89AA5;
+  --ok:#5CC994; --ok-bg:#16301F; --warn:#E6B45E; --warn-bg:#36290F; --bad:#F2877A; --bad-bg:#3B1A16; --info:#85B5E3; --info-bg:#172A3D; --neutral-bg:#2C2528;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#161214; --surface:#201A1D; --surface-2:#2A2226; --line:#3A3035; --fg:#F2ECEE; --muted:#AEA2A7;
+  --accent:#D9567A; --accent-2:#F08AA6; --accent-soft:#3A1E28; --accent-fg:#1A0A10;
+  --oro:#D5B07B; --oro-l:#3A3125; --side:#1C0F15; --side-2:#140A0F; --side-fg:#F2E4E9; --side-muted:#B89AA5;
+  --ok:#5CC994; --ok-bg:#16301F; --warn:#E6B45E; --warn-bg:#36290F; --bad:#F2877A; --bad-bg:#3B1A16; --info:#85B5E3; --info-bg:#172A3D; --neutral-bg:#2C2528;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25); color-scheme:dark}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-ui);font-size:14px;line-height:1.5}
+h1,h2,h3,h4{margin:0;text-wrap:balance;line-height:1.2}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--oro);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--oro)}
+a{color:var(--accent)}
+
+/* Botones y campos */
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);padding:9px 14px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.btn.primary:hover{background:var(--accent-2);border-color:var(--accent-2)}
+.btn.ghost{background:transparent;border-color:transparent}
+.btn.ghost:hover{background:var(--surface-2)}
+.btn.sm{padding:6px 10px;font-size:12px}
+.btn.danger{color:var(--bad)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.btn svg{width:16px;height:16px;flex:none}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field label{font-size:12px;font-weight:600;color:var(--muted)}
+.input,select.input,textarea.input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);min-width:0}
+textarea.input{resize:vertical;min-height:88px}
+.input:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:transparent}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:640px){.grid2,.grid3{grid-template-columns:1fr}}
+.span2{grid-column:1/-1}
+
+/* Chips de estado */
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap;background:var(--neutral-bg);color:var(--muted)}
+.chip::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.chip.ok{background:var(--ok-bg);color:var(--ok)}.chip.warn{background:var(--warn-bg);color:var(--warn)}
+.chip.bad{background:var(--bad-bg);color:var(--bad)}.chip.info{background:var(--info-bg);color:var(--info)}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.dot.ok{background:var(--ok)}.dot.warn{background:var(--warn)}.dot.bad{background:var(--bad)}
+
+/* ===== Portada ===== */
+.landing{min-height:100vh;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
+.hero{background:var(--guinda-d);color:#F7EEF1;position:relative;overflow:hidden;padding-block:40px;padding-left:max(32px,env(safe-area-inset-left,0px));padding-right:32px;display:flex;flex-direction:column;gap:28px}
+.hero::after{content:"";position:absolute;inset:auto -120px -160px auto;width:420px;height:420px;border-radius:50%;border:56px solid rgba(188,149,92,.18)}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-mark{width:42px;height:42px;border-radius:10px;background:#BC955C;color:#4A1427;display:grid;place-items:center;font-weight:800;font-size:15px;letter-spacing:.02em;flex:none}
+.brand b{display:block;font-size:15px}
+.brand span{font-size:12px;opacity:.8}
+.hero h1{font-family:var(--f-display);font-size:clamp(28px,4vw,44px);max-width:16ch;color:#fff}
+.hero .lead{font-size:16px;max-width:52ch;opacity:.92}
+.hero .strip{height:6px;width:120px;background:linear-gradient(90deg,#BC955C 0 33%,#fff 33% 66%,#235B4E 66%);border-radius:3px}
+.mods{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-width:620px;position:relative;z-index:1}
+.mods div{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:12px 14px;font-size:13px}
+.mods b{display:block;color:#E9D2A9;font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.roles-line{display:flex;flex-wrap:wrap;gap:8px;position:relative;z-index:1}
+.roles-line span{border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:4px 12px;font-size:12px}
+.auth{display:flex;align-items:center;justify-content:center;padding-block:40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.auth-card{width:100%;max-width:430px;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:28px;display:flex;flex-direction:column;gap:18px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{background:none;border:0;padding:10px 12px;cursor:pointer;font-weight:600;font-size:13px;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.form{display:flex;flex-direction:column;gap:14px}
+.note{font-size:12px;color:var(--muted);background:var(--surface-2);border-radius:8px;padding:10px 12px}
+.err{font-size:12.5px;color:var(--bad);min-height:1em}
+.divider{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line)}
+.keybox{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;letter-spacing:.08em;text-transform:uppercase}
+@media (max-width:900px){.landing{grid-template-columns:1fr}.hero{padding-right:max(20px,env(safe-area-inset-right,0px));padding-left:max(20px,env(safe-area-inset-left,0px))}.mods{grid-template-columns:1fr 1fr}}
+@media (max-width:480px){.mods{grid-template-columns:1fr}}
+
+/* ===== Asistente de configuración ===== */
+.wizard{min-height:100vh;display:flex;justify-content:center;padding-block:32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wiz-card{width:100%;max-width:720px;display:flex;flex-direction:column;gap:20px}
+.steps{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.steps div{height:5px;border-radius:3px;background:var(--line)}
+.steps div.on{background:var(--accent)}
+.wiz-body{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:28px;display:flex;flex-direction:column;gap:18px;box-shadow:var(--shadow)}
+.wiz-body h2{font-family:var(--f-display);font-size:26px}
+.choice{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.choice label{border:1px solid var(--line);border-radius:10px;padding:14px;cursor:pointer;display:flex;gap:10px;align-items:center;font-weight:600}
+.choice input{accent-color:var(--accent)}
+.choice label:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.wiz-foot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+
+/* ===== Aplicación ===== */
+.app{display:grid;grid-template-columns:256px minmax(0,1fr);min-height:100vh}
+.side{background:var(--side);color:var(--side-fg);position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;padding-block:18px;padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:14px;gap:18px}
+.side .brand{padding:0 6px}
+.side .brand span{color:var(--side-muted);opacity:1}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav-label{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--side-muted);padding:10px 10px 4px}
+.nav a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:var(--side-fg);text-decoration:none;font-weight:500;font-size:13.5px}
+.nav a svg{width:18px;height:18px;opacity:.85;flex:none}
+.nav a:hover{background:rgba(255,255,255,.08)}
+.nav a[aria-current="page"]{background:rgba(255,255,255,.14);font-weight:700;box-shadow:inset 3px 0 0 var(--oro)}
+.nav .mnum{margin-left:auto;font-size:10.5px;color:var(--side-muted);font-variant-numeric:tabular-nums}
+.side-foot{margin-top:auto;font-size:11.5px;color:var(--side-muted);padding:0 8px;display:flex;flex-direction:column;gap:6px}
+.lic{background:var(--side-2);border-radius:8px;padding:10px;font-size:11.5px}
+.lic b{color:var(--side-fg);display:block}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding-block:10px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.top .crumb{min-width:0;flex:1}
+.top .crumb b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .crumb span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.rolesel{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.rolesel select{padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);font-weight:600;font-size:12.5px}
+.icon-btn{width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--line);background:var(--surface);border-radius:8px;cursor:pointer;flex:none;position:relative}
+.icon-btn svg{width:18px;height:18px}
+.icon-btn .badge{position:absolute;top:-5px;right:-5px;background:var(--bad);color:#fff;font-size:10px;font-weight:700;border-radius:999px;min-width:17px;height:17px;display:grid;place-items:center;padding:0 4px}
+.menu-btn{display:none}
+.main{padding-block:24px 48px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:20px;max-width:1280px;width:100%;min-width:0}
+.page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.page-head h1{font-family:var(--f-display);font-size:clamp(22px,3vw,30px)}
+.page-head p{color:var(--muted);margin-top:4px;max-width:70ch}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.scrim{display:none}
+@media (max-width:960px){
+  .app{grid-template-columns:1fr}
+  .side{position:fixed;inset:0 auto 0 0;width:280px;z-index:30;transform:translateX(-100%);transition:transform .2s ease;padding-top:max(18px,env(safe-area-inset-top,0px))}
+  .app.open .side{transform:none}
+  .app.open .scrim{display:block;position:fixed;inset:0;background:rgba(20,8,12,.45);z-index:25}
+  .menu-btn{display:grid}
+  .rolesel span{display:none}
+}
+@media (max-width:520px){.top .crumb span{display:none}}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.panel-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.panel-h h3{font-size:15px}
+.cols{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:20px}
+.cols.even{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:1060px){.cols,.cols.even{grid-template-columns:1fr}}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+@media (max-width:900px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.kpi .k-label{font-size:12px;font-weight:600;color:var(--muted)}
+.kpi .k-val{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.kpi .k-sub{font-size:12px;color:var(--muted)}
+.bar{height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.bar.ok i{background:var(--ok)}
+
+.alerts{display:flex;flex-direction:column;gap:8px}
+.alert{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:start;padding:10px 12px;border-radius:8px;background:var(--surface-2);font-size:13px}
+.alert .dot{margin-top:5px}
+.alert a{font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer}
+
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;background:var(--surface-2);padding:10px 12px;white-space:nowrap}
+td{padding:10px 12px;border-top:1px solid var(--line);vertical-align:top}
+td.clip{max-width:320px}
+tr:hover td{background:color-mix(in srgb,var(--surface-2) 45%,transparent)}
+td.act{white-space:nowrap;text-align:right}
+.empty{padding:28px;text-align:center;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:10px}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.search{position:relative;flex:1;min-width:180px;max-width:340px}
+.search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--muted)}
+.search input{padding-left:34px}
+.subtabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+
+.list{display:flex;flex-direction:column}
+.li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.li:first-child{border-top:0}
+.date-badge{width:46px;text-align:center;border:1px solid var(--line);border-radius:8px;padding:4px 0;line-height:1.1}
+.date-badge b{display:block;font-size:17px;font-variant-numeric:tabular-nums}
+.date-badge span{font-size:10px;text-transform:uppercase;color:var(--accent);font-weight:700;letter-spacing:.06em}
+.li-title{font-weight:600;font-size:13.5px}
+.li-sub{font-size:12px;color:var(--muted)}
+
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+.ev{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--surface);display:flex;flex-direction:column}
+.ev .ph{aspect-ratio:4/3;background:var(--surface-2);display:grid;place-items:center;color:var(--muted);max-width:100%}
+.ev .ph img{width:100%;height:100%;object-fit:cover}
+.ev .ph svg{width:34px;height:34px}
+.ev .ev-b{padding:10px 12px;display:flex;flex-direction:column;gap:3px}
+
+.checklist{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.check{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px dashed var(--line);border-radius:8px;font-size:13px;cursor:pointer;background:none;text-align:left}
+.check.done{border-style:solid;color:var(--muted)}
+.check .ck{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;flex:none}
+.check.done .ck{background:var(--ok);border-color:var(--ok);color:#fff}
+.check.done .ck svg{width:12px;height:12px}
+
+.chart text{fill:var(--muted);font-size:11px;font-family:var(--f-ui)}
+.chart .lbl{fill:var(--fg);font-size:12px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(20,8,12,.5);z-index:50;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding-block:max(40px,env(safe-area-inset-top,0px)) 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.modal{background:var(--surface);border-radius:14px;width:100%;max-width:640px;box-shadow:0 20px 60px rgba(0,0,0,.3);display:flex;flex-direction:column}
+.modal.wide{max-width:900px}
+.modal-h{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line);gap:10px}
+.modal-h h3{font-size:16px}
+.modal-b{padding:20px;display:flex;flex-direction:column;gap:14px}
+.modal-f{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid var(--line);flex-wrap:wrap}
+.toast{position:fixed;bottom:max(20px,env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;z-index:60;box-shadow:var(--shadow);max-width:calc(100% - 32px)}
+
+/* IA */
+.ia-grid{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:20px}
+@media (max-width:1000px){.ia-grid{grid-template-columns:1fr}}
+.doc-types{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.doc-types label{border:1px solid var(--line);border-radius:8px;padding:10px;font-size:12.5px;font-weight:600;cursor:pointer;display:flex;gap:8px;align-items:flex-start}
+.doc-types label:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.doc-types input{accent-color:var(--accent);margin-top:2px}
+.paper{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);min-height:420px;display:flex;flex-direction:column;min-width:0}
+.paper-h{display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
+.paper-b{padding:24px 28px;font-size:14px;line-height:1.65;overflow-wrap:anywhere}
+.paper-b h2{font-family:var(--f-display);font-size:20px;margin:18px 0 8px;color:var(--accent)}
+.paper-b h2:first-child{margin-top:0}
+.paper-b h3{font-size:15px;margin:14px 0 6px}
+.paper-b p{margin:0 0 10px;max-width:72ch}
+.paper-b ul{margin:0 0 10px;padding-left:20px;max-width:72ch}
+.paper-b .ph-empty{color:var(--muted);display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.paper textarea{border:0;border-radius:0;min-height:420px;padding:24px 28px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;background:var(--surface)}
+.thinking{display:flex;gap:8px;align-items:center;color:var(--muted)}
+.thinking i{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1s infinite alternate}
+@keyframes pulse{from{opacity:.25}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.thinking i{animation:none}.side{transition:none}}
+
+/* Repositorio */
+.folders{display:flex;gap:6px;flex-wrap:wrap}
+.folder{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer}
+.folder[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.drop{border:2px dashed var(--line);border-radius:var(--r);padding:22px;text-align:center;color:var(--muted);display:flex;flex-direction:column;gap:8px;align-items:center}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.ftype{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;font-size:9.5px;font-weight:800;letter-spacing:.04em;color:#fff;flex:none}
+.ft-pdf{background:#B42318}.ft-doc{background:#2B5C8A}.ft-xls{background:#1E7A4F}.ft-img{background:#9A6212}.ft-vid{background:#6B3FA0}.ft-txt{background:#691C32}.ft-otro{background:#6C6266}
+
+.rep-grid{display:grid;grid-template-columns:minmax(0,280px) minmax(0,1fr);gap:20px}
+@media (max-width:900px){.rep-grid{grid-template-columns:1fr}}
+.rep-list{display:flex;flex-direction:column;gap:6px}
+.rep-item{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:10px 12px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+.rep-item b{font-size:13px}
+.rep-item span{font-size:11.5px;color:var(--muted)}
+.rep-item[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.matrix td,.matrix th{text-align:center}
+.matrix td:first-child,.matrix th:first-child{text-align:left}
+.yes{color:var(--ok);font-weight:700}.no{color:var(--muted)}
+.mini{font-size:12px}
+.sem{display:flex;align-items:center;gap:8px}
+</style>
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+</head>
+<body>
+
+
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+/* ================= Utilidades ================= */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Math.random().toString(36).slice(2, 10);
+const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const parseD = s => { if (!s) return null; const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
+const fmtD = s => { const d = parseD(s); return d ? `${d.getDate()} ${MESES[d.getMonth()]} ${d.getFullYear()}` : '—'; };
+const today = () => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); };
+const isoToday = () => { const t = today(); return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`; };
+const daysFrom = s => Math.round((parseD(s) - today()) / 86400000);
+const pct = (a, b) => b ? Math.round(a * 100 / b) : 0;
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } },
+  del(k) { try { localStorage.removeItem(k); } catch {} }
+};
+async function sha256(t) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2,'0')).join(''); }
+const b64 = buf => btoa(String.fromCharCode(...new Uint8Array(buf)));
+const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+
+const I = {
+  home:'<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>',
+  school:'<path d="M3 21h18"/><path d="M5 21V10l7-5 7 5v11"/><path d="M10 21v-5h4v5"/>',
+  route:'<circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h7a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h7"/>',
+  book:'<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5"/>',
+  people:'<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.5c3 0 5.5 1.7 5.5 4.5"/>',
+  spark:'<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/>',
+  folder:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  chart:'<path d="M4 20V4"/><path d="M4 20h16"/><rect x="7" y="11" width="3" height="6"/><rect x="12" y="7" width="3" height="10"/><rect x="17" y="13" width="3" height="4"/>',
+  shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  menu:'<path d="M4 6h16M4 12h16M4 18h16"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  edit:'<path d="M4 20h4L19 9l-4-4L4 16z"/>',
+  trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+  down:'<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
+  up:'<path d="M12 20V9M7 14l5-5 5 5M5 4h14"/>',
+  out:'<path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h11"/>',
+  bell:'<path d="M6 16V11a6 6 0 1 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
+  x:'<path d="M6 6l12 12M18 6L6 18"/>',
+  check:'<path d="M5 12l5 5 9-10"/>',
+  photo:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/>',
+  key:'<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3"/>',
+  copy:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V6a2 2 0 0 1 2-2h10"/>',
+  eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  refresh:'<path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/>'
+};
+const ic = (n, cls = '') => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;
+
+/* ================= Catálogos ================= */
+const ESTADOS = ['Aguascalientes','Baja California','Baja California Sur','Campeche','Chiapas','Chihuahua','Ciudad de México','Coahuila','Colima','Durango','Estado de México','Guanajuato','Guerrero','Hidalgo','Jalisco','Michoacán','Morelos','Nayarit','Nuevo León','Oaxaca','Puebla','Querétaro','Quintana Roo','San Luis Potosí','Sinaloa','Sonora','Tabasco','Tamaulipas','Tlaxcala','Veracruz','Yucatán','Zacatecas'];
+const NIVELES = ['Educación Inicial','Preescolar','Primaria','Secundaria General','Secundaria Técnica','Telesecundaria','Educación Especial','Educación Física'];
+const CAMPOS_NEM = [
+  {nombre:'Lenguajes', descripcion:'Comunicación oral y escrita, lenguas indígenas, inglés y lenguajes artísticos.'},
+  {nombre:'Saberes y Pensamiento Científico', descripcion:'Matemáticas y ciencias para comprender y explicar fenómenos del entorno.'},
+  {nombre:'Ética, Naturaleza y Sociedades', descripcion:'Historia, geografía y formación cívica con enfoque de derechos y sustentabilidad.'},
+  {nombre:'De lo Humano y lo Comunitario', descripcion:'Vida saludable, educación socioemocional, educación física y tecnología.'}
+];
+const SESIONES_CTE = ['Fase intensiva','1ª sesión ordinaria','2ª sesión ordinaria','3ª sesión ordinaria','4ª sesión ordinaria','5ª sesión ordinaria','6ª sesión ordinaria','7ª sesión ordinaria','8ª sesión ordinaria'];
+const ROLES = {supervisor:'Supervisor(a)', atp:'ATP', director:'Director(a)', docente:'Docente'};
+
+/* ================= Estado ================= */
+let S = null;          // datos de la instancia
+let SESSION = store.get('zei-session', null);
+let ROLE = store.get('zei-role', 'supervisor');
+const UI = {tab:{}, q:{}, folder:'Todas', rep:'visitas', iaType:'informe', iaOut:'', iaEdit:false, authTab:'login', wizStep:0, wiz:{}};
+const FILES = new Map(); // contenido de archivos del repositorio (sólo en memoria)
+
+function emptyData() {
+  return {zona:{configurada:false}, escuelas:[], personal:[], grupos:[], campos:CAMPOS_NEM.map(c => ({id:uid(), ...c})), academias:[],
+    visitas:[], observaciones:[], acuerdos:[], sesiones:[], planeaciones:[], evidencias:[], proyectos:[], evaluaciones:[], repositorio:[], bitacora:[], licencia:null};
+}
+
+function demoData() {
+  const d = emptyData();
+  d.zona = {configurada:true, nombre:'Zona Escolar 048', clave:'048', nivel:'Primaria', estado:'Puebla', numEscuelas:6, supervisor:'Mtra. Laura Hernández Cruz', correo:'supervision048@ejemplo.mx', telefono:'222 000 0000', sede:'Atlixco, Puebla', sector:'Sector 07', ciclo:'2026-2027', municipio:'Atlixco', demo:true};
+  const E = [
+    ['Benito Juárez','21DPR0412K','Matutino','Atlixco centro',312],
+    ['Josefa Ortiz de Domínguez','21DPR1128T','Matutino','San Pedro Benito Juárez',186],
+    ['Miguel Hidalgo','21EPR0356B','Vespertino','Atlixco centro',148],
+    ['Niños Héroes','21DPR0890H','Matutino','Metepec',224],
+    ['Ignacio Zaragoza','21DPR2041M','Tiempo completo','La Trinidad Tepango',97],
+    ['Gabriela Mistral','21DPR1576C','Matutino','Santo Domingo Atoyatempan',141]];
+  d.escuelas = E.map(([nombre,cct,turno,localidad,matricula]) => ({id:uid(), nombre, cct, turno, localidad, matricula}));
+  const dirs = ['Mtro. Arturo Méndez Ríos','Mtra. Rosa Elena Pérez Vega','Mtro. Joel Sánchez Ortega','Mtra. Patricia Luna Flores','Mtro. Rubén Castillo Mora','Mtra. Silvia Rojas Aguilar'];
+  dirs.forEach((n,i) => d.personal.push({id:uid(), nombre:n, rol:'Director', escuela:E[i][0], funcion:'Dirección escolar', correo:''}));
+  d.personal.push({id:uid(), nombre:'Mtra. Verónica Ibáñez Torres', rol:'ATP', escuela:'Supervisión', funcion:'Lenguajes', correo:''});
+  d.personal.push({id:uid(), nombre:'Mtro. Daniel Ortega Salas', rol:'ATP', escuela:'Supervisión', funcion:'Saberes y Pensamiento Científico', correo:''});
+  const docs = [
+    ['Mtra. Claudia Morales Díaz',0,'1° A'],['Mtro. Fernando Ruiz León',0,'4° B'],['Mtra. Itzel Romero Cano',0,'6° A'],
+    ['Mtra. Gabriela Torres Núñez',1,'2° A'],['Mtro. Héctor Vázquez Gil',1,'5° A'],
+    ['Mtra. Lucía Domínguez Paz',2,'3° A'],['Mtro. Ricardo Flores Bravo',2,'6° B'],
+    ['Mtra. Mariana Cruz Aguilar',3,'1° B'],['Mtro. Omar Jiménez Ramos',3,'4° A'],
+    ['Mtra. Alejandra Soto Ríos',4,'Multigrado 1°-3°'],
+    ['Mtra. Paola Herrera Lima',5,'2° B'],['Mtro. Sergio Navarro Peña',5,'5° B']];
+  const alumnos = [28,31,29,24,26,22,25,27,30,18,23,24];
+  docs.forEach(([n,ei,g],i) => {
+    d.personal.push({id:uid(), nombre:n, rol:'Docente', escuela:E[ei][0], funcion:g, correo:''});
+    d.grupos.push({id:uid(), grupo:g, escuela:E[ei][0], docente:n, alumnos:alumnos[i]});
+  });
+  const cn = d.campos.map(c => c.nombre);
+  d.academias = [
+    {id:uid(), nombre:'Academia de Lenguajes', campo:cn[0], coordinador:'Mtra. Verónica Ibáñez Torres', integrantes:9},
+    {id:uid(), nombre:'Academia de Pensamiento Matemático', campo:cn[1], coordinador:'Mtro. Daniel Ortega Salas', integrantes:8}];
+  const V = [
+    ['2026-09-08',0,0,0,'Acompañamiento','Realizada','Observar la lectura en voz alta y el uso del libro de Proyectos de Aula.'],
+    ['2026-09-15',1,1,3,'Acompañamiento','Realizada','Revisar la implementación del proyecto comunitario de huerto escolar.'],
+    ['2026-09-22',3,0,7,'Supervisión','Realizada','Verificar el diagnóstico socioeducativo y el programa analítico.'],
+    ['2026-09-29',2,1,5,'Asesoría','Realizada','Asesorar el diseño de secuencias de Saberes y Pensamiento Científico.'],
+    ['2026-10-06',5,0,10,'Acompañamiento','Realizada','Acompañar estrategias de lectura en grupo con rezago.'],
+    ['2026-10-13',0,1,1,'Seguimiento','Realizada','Dar seguimiento a los acuerdos de la visita del 8 de septiembre.'],
+    ['2026-10-20',4,0,9,'Acompañamiento','Cancelada','Visita reprogramada por suspensión de clases.'],
+    ['2026-10-29',4,0,9,'Acompañamiento','Programada','Observar la planeación multigrado por proyectos.'],
+    ['2026-10-30',1,1,4,'Seguimiento','Programada','Seguimiento al proyecto de huerto escolar.'],
+    ['2026-11-05',3,0,8,'Acompañamiento','Programada','Observar la evaluación formativa en 1° B.'],
+    ['2026-11-11',2,1,6,'Supervisión','Programada','Revisar avances del programa analítico.']];
+  const atps = ['Mtra. Verónica Ibáñez Torres','Mtro. Daniel Ortega Salas'];
+  d.visitas = V.map(([fecha,ei,ai,di,tipo,estado,proposito]) => ({id:uid(), fecha, escuela:E[ei][0], atp:atps[ai], docente:docs[di][0], tipo, estado, proposito}));
+  d.observaciones = [
+    {id:uid(), fecha:'2026-09-08', escuela:E[0][0], docente:docs[0][0], campo:cn[0], fortalezas:'Ambiente de aula ordenado y afectivo; uso de rutinas de lectura diaria.', areas:'Fortalecer preguntas de comprensión inferencial y registro de avances por alumno.', nivel:'Satisfactorio'},
+    {id:uid(), fecha:'2026-09-15', escuela:E[1][0], docente:docs[3][0], campo:cn[3], fortalezas:'El proyecto de huerto involucra a las familias y vincula varios campos formativos.', areas:'Definir evidencias de aprendizaje y criterios de evaluación del proyecto.', nivel:'Destacado'},
+    {id:uid(), fecha:'2026-09-22', escuela:E[3][0], docente:docs[7][0], campo:cn[0], fortalezas:'Buena organización del material didáctico.', areas:'El diagnóstico no recupera la lectura de la realidad del grupo; la planeación es muy general.', nivel:'En desarrollo'},
+    {id:uid(), fecha:'2026-09-29', escuela:E[2][0], docente:docs[5][0], campo:cn[1], fortalezas:'Uso de material concreto para fracciones.', areas:'Pocas oportunidades para que los alumnos expliquen sus procedimientos.', nivel:'Satisfactorio'},
+    {id:uid(), fecha:'2026-10-06', escuela:E[5][0], docente:docs[10][0], campo:cn[0], fortalezas:'Disposición al acompañamiento.', areas:'Seis alumnos no consolidan la lectoescritura; falta un plan de atención diferenciada.', nivel:'Requiere apoyo'}];
+  d.acuerdos = [
+    {id:uid(), acuerdo:'Aplicar la estrategia de lectura "10 minutos diarios" en todos los grupos.', origen:'CTE', escuela:'Toda la zona', responsable:'Directores', limite:'2026-10-31', estado:'En proceso'},
+    {id:uid(), acuerdo:'Entregar el programa analítico actualizado a la supervisión.', origen:'CTE', escuela:'Toda la zona', responsable:'Directores', limite:'2026-10-10', estado:'Cumplido'},
+    {id:uid(), acuerdo:'Elaborar plan de atención diferenciada para alumnos que no leen.', origen:'Visita', escuela:E[5][0], responsable:docs[10][0], limite:'2026-10-20', estado:'Pendiente'},
+    {id:uid(), acuerdo:'Definir criterios de evaluación del proyecto de huerto escolar.', origen:'Visita', escuela:E[1][0], responsable:docs[3][0], limite:'2026-10-24', estado:'Cumplido'},
+    {id:uid(), acuerdo:'Rediseñar el diagnóstico de 1° B con lectura de la realidad del grupo.', origen:'Visita', escuela:E[3][0], responsable:docs[7][0], limite:'2026-10-15', estado:'En proceso'},
+    {id:uid(), acuerdo:'Calendarizar reuniones mensuales de la Academia de Lenguajes.', origen:'Academia', escuela:'Toda la zona', responsable:'Mtra. Verónica Ibáñez Torres', limite:'2026-11-07', estado:'Pendiente'},
+    {id:uid(), acuerdo:'Registrar asistencia diaria en el formato digital de la zona.', origen:'Reunión de directores', escuela:'Toda la zona', responsable:'Directores', limite:'2026-11-14', estado:'En proceso'},
+    {id:uid(), acuerdo:'Integrar comisión de seguridad y emergencia escolar.', origen:'CTE', escuela:E[2][0], responsable:dirs[2], limite:'2026-09-30', estado:'Cumplido'}];
+  d.sesiones = [
+    {id:uid(), fecha:'2026-08-24', sesion:'Fase intensiva', escuela:'Toda la zona', asistentes:64, temas:'Diagnóstico integral de la escuela; construcción del programa analítico; Programa Escolar de Mejora Continua (PEMC).', minuta:'Se revisaron los resultados del diagnóstico de cada escuela. Se acordó priorizar lectura y pensamiento matemático en el PEMC 2026-2027.'},
+    {id:uid(), fecha:'2026-09-25', sesion:'1ª sesión ordinaria', escuela:'Toda la zona', asistentes:61, temas:'Seguimiento al programa analítico; estrategia de lectura de zona.', minuta:'Se presentó la estrategia "10 minutos diarios" y se definió la entrega del programa analítico.'},
+    {id:uid(), fecha:'2026-10-30', sesion:'2ª sesión ordinaria', escuela:'Toda la zona', asistentes:0, temas:'Evaluación formativa; avances del PEMC.', minuta:''}];
+  d.planeaciones = [
+    {id:uid(), titulo:'Leemos y escribimos cuentos de nuestra comunidad', docente:docs[0][0], grupo:'1° A', campo:cn[0], periodo:'Sep–Oct 2026', estado:'Revisada'},
+    {id:uid(), titulo:'Fracciones en la cocina tradicional', docente:docs[5][0], grupo:'3° A', campo:cn[1], periodo:'Oct 2026', estado:'Entregada'},
+    {id:uid(), titulo:'El huerto escolar: alimentación saludable', docente:docs[3][0], grupo:'2° A', campo:cn[3], periodo:'Sep–Nov 2026', estado:'Revisada'},
+    {id:uid(), titulo:'Mi localidad en el mapa', docente:docs[8][0], grupo:'4° A', campo:cn[2], periodo:'Oct 2026', estado:'Entregada'},
+    {id:uid(), titulo:'Proyecto multigrado: el agua en La Trinidad', docente:docs[9][0], grupo:'Multigrado 1°-3°', campo:cn[1], periodo:'Oct–Nov 2026', estado:'Borrador'}];
+  d.evidencias = [
+    {id:uid(), titulo:'Mural de cuentos comunitarios', docente:docs[0][0], grupo:'1° A', tipo:'Producto', fecha:'2026-10-09', descripcion:'Producto final de la primera fase del proyecto.', foto:''},
+    {id:uid(), titulo:'Siembra en el huerto', docente:docs[3][0], grupo:'2° A', tipo:'Fotografía', fecha:'2026-09-15', descripcion:'Participación de madres y padres de familia.', foto:''},
+    {id:uid(), titulo:'Medición con fracciones', docente:docs[5][0], grupo:'3° A', tipo:'Fotografía', fecha:'2026-10-14', descripcion:'Trabajo en equipos con material concreto.', foto:''}];
+  d.proyectos = [
+    {id:uid(), nombre:'Cuentos de nuestra comunidad', docente:docs[0][0], grupo:'1° A', escenario:'Aula', campo:cn[0], inicio:'2026-09-14', fin:'2026-10-30', estado:'En curso'},
+    {id:uid(), nombre:'Huerto escolar', docente:docs[3][0], grupo:'2° A', escenario:'Comunitario', campo:cn[3], inicio:'2026-09-08', fin:'2026-12-12', estado:'En curso'},
+    {id:uid(), nombre:'Feria de las fracciones', docente:docs[5][0], grupo:'3° A', escenario:'Escolar', campo:cn[1], inicio:'2026-11-03', fin:'2026-11-21', estado:'Planeado'}];
+  d.evaluaciones = [
+    {id:uid(), docente:docs[0][0], grupo:'1° A', campo:cn[0], periodo:'1er periodo', promedio:8.4, asistencia:95, enRiesgo:2},
+    {id:uid(), docente:docs[3][0], grupo:'2° A', campo:cn[3], periodo:'1er periodo', promedio:8.9, asistencia:96, enRiesgo:1},
+    {id:uid(), docente:docs[5][0], grupo:'3° A', campo:cn[1], periodo:'1er periodo', promedio:7.6, asistencia:91, enRiesgo:4},
+    {id:uid(), docente:docs[7][0], grupo:'1° B', campo:cn[0], periodo:'1er periodo', promedio:7.2, asistencia:89, enRiesgo:5},
+    {id:uid(), docente:docs[10][0], grupo:'2° B', campo:cn[0], periodo:'1er periodo', promedio:6.9, asistencia:87, enRiesgo:6}];
+  d.repositorio = [
+    {id:uid(), nombre:'Plan de Estudio 2022 – referencia.pdf', carpeta:'Normatividad', tipo:'pdf', size:0, fecha:'2026-08-20', autor:'Supervisión', ejemplo:true},
+    {id:uid(), nombre:'Guía CTE 1ª sesión ordinaria.pdf', carpeta:'CTE', tipo:'pdf', size:0, fecha:'2026-09-20', autor:'Supervisión', ejemplo:true},
+    {id:uid(), nombre:'Concentrado de matrícula 2026-2027.xlsx', carpeta:'Informes', tipo:'xls', size:0, fecha:'2026-09-05', autor:'Supervisión', ejemplo:true},
+    {id:uid(), nombre:'Formato de visita de acompañamiento.docx', carpeta:'Visitas', tipo:'doc', size:0, fecha:'2026-09-01', autor:'ATP', ejemplo:true}];
+  d.licencia = {key:'ZEI-DEMO-0048-PUEB-LA26', plan:'Zona (demostración)', activada:isoToday(), vigencia:'2027-08-31'};
+  return d;
+}
+
+function load() {
+  S = store.get('zei-data', null);
+  if (!S) S = emptyData();
+  for (const k of Object.keys(emptyData())) if (S[k] === undefined) S[k] = emptyData()[k];
+}
+let saveT = null;
+function save() {
+  clearTimeout(saveT);
+  saveT = setTimeout(() => {
+    store.set('zei-data', S);
+    const snaps = store.get('zei-snaps', []);
+    const last = snaps[0];
+    if (!last || Date.now() - last.t > 120000) {
+      snaps.unshift({t:Date.now(), data:S});
+      store.set('zei-snaps', snaps.slice(0, 5));
+    }
+  }, 400);
+}
+function log(accion) {
+  S.bitacora.unshift({t:Date.now(), usuario:SESSION?.nombre || '—', rol:ROLES[ROLE], accion});
+  S.bitacora = S.bitacora.slice(0, 80);
+}
+
+/* ================= Permisos ================= */
+const VIEWS = [
+  {id:'inicio', label:'Inicio', icon:'home', m:'3–5'},
+  {id:'zona', label:'Configuración de la zona', icon:'school', m:'2'},
+  {id:'acompanamiento', label:'Acompañamiento ATP', icon:'route', m:'4'},
+  {id:'docente', label:'Trabajo docente', icon:'book', m:'5'},
+  {id:'cte', label:'Consejo Técnico', icon:'people', m:'6'},
+  {id:'ia', label:'Asistente IA', icon:'spark', m:'7'},
+  {id:'repositorio', label:'Repositorio', icon:'folder', m:'8'},
+  {id:'reportes', label:'Reportes', icon:'chart', m:'9'},
+  {id:'seguridad', label:'Seguridad', icon:'shield', m:'10'}];
+const ACCESS = {
+  supervisor:['inicio','zona','acompanamiento','docente','cte','ia','repositorio','reportes','seguridad'],
+  atp:['inicio','acompanamiento','docente','cte','ia','repositorio','reportes'],
+  director:['inicio','zona','acompanamiento','docente','cte','ia','repositorio','reportes'],
+  docente:['inicio','docente','cte','ia','repositorio']};
+const WRITE = {
+  supervisor:'*',
+  atp:['visitas','observaciones','acuerdos','sesiones','evidencias','academias'],
+  director:['personal','grupos','academias','acuerdos','sesiones','evidencias','planeaciones'],
+  docente:['planeaciones','evidencias','proyectos','evaluaciones']};
+const canWrite = ent => WRITE[ROLE] === '*' || WRITE[ROLE].includes(ent);
+const canView = v => ACCESS[ROLE].includes(v);
+
+/* ================= Opciones dinámicas ================= */
+const O = {
+  escuelas: () => S.escuelas.map(e => e.nombre),
+  escuelasZona: () => ['Toda la zona', ...S.escuelas.map(e => e.nombre)],
+  escuelasSup: () => ['Supervisión', ...S.escuelas.map(e => e.nombre)],
+  docentes: () => S.personal.filter(p => p.rol === 'Docente').map(p => p.nombre),
+  docentesOpt: () => ['—', ...S.personal.filter(p => p.rol === 'Docente').map(p => p.nombre)],
+  asesores: () => [...S.personal.filter(p => p.rol === 'ATP').map(p => p.nombre), S.zona.supervisor].filter(Boolean),
+  personal: () => S.personal.map(p => p.nombre),
+  campos: () => S.campos.map(c => c.nombre),
+  grupos: () => S.grupos.map(g => g.grupo)
+};
+
+/* ================= Entidades ================= */
+const F = (k, label, type = 'text', extra = {}) => ({k, label, type, ...extra});
+const ENT = {
+  escuelas:{label:'Escuelas', one:'escuela', fields:[F('nombre','Nombre de la escuela','text',{req:1}), F('cct','Clave de Centro de Trabajo (CCT)','text',{ph:'21DPR0000X'}), F('turno','Turno','select',{opts:['Matutino','Vespertino','Tiempo completo','Nocturno']}), F('localidad','Localidad'), F('matricula','Matrícula','number')], cols:['nombre','cct','turno','localidad','matricula']},
+  personal:{label:'Personal', one:'persona', fields:[F('nombre','Nombre completo','text',{req:1}), F('rol','Función','select',{opts:['Director','Subdirector','ATP','Docente','Docente de Educación Física','USAER']}), F('escuela','Adscripción','select',{opts:O.escuelasSup}), F('funcion','Grado, grupo o especialidad'), F('correo','Correo electrónico','email')], cols:['nombre','rol','escuela','funcion']},
+  grupos:{label:'Grupos', one:'grupo', fields:[F('grupo','Grupo','text',{req:1,ph:'3° A'}), F('escuela','Escuela','select',{opts:O.escuelas}), F('docente','Docente titular','select',{opts:O.docentes}), F('alumnos','Número de alumnos','number')], cols:['grupo','escuela','docente','alumnos']},
+  campos:{label:'Campos formativos', one:'campo formativo', fields:[F('nombre','Nombre','text',{req:1}), F('descripcion','Descripción','textarea')], cols:['nombre','descripcion']},
+  academias:{label:'Academias', one:'academia', fields:[F('nombre','Nombre de la academia','text',{req:1}), F('campo','Campo formativo','select',{opts:O.campos}), F('coordinador','Coordinador(a)','select',{opts:O.personal}), F('integrantes','Integrantes','number')], cols:['nombre','campo','coordinador','integrantes']},
+  visitas:{label:'Agenda de visitas', one:'visita', fields:[F('fecha','Fecha','date',{req:1}), F('escuela','Escuela','select',{opts:O.escuelas}), F('atp','Quién visita','select',{opts:O.asesores}), F('docente','Docente a acompañar','select',{opts:O.docentesOpt}), F('tipo','Tipo de visita','select',{opts:['Acompañamiento','Supervisión','Seguimiento','Asesoría']}), F('estado','Estado','select',{opts:['Programada','Realizada','Cancelada']}), F('proposito','Propósito de la visita','textarea',{span:1})], cols:['fecha','escuela','docente','tipo','atp','estado']},
+  observaciones:{label:'Observaciones de clase', one:'observación', fields:[F('fecha','Fecha','date',{req:1}), F('escuela','Escuela','select',{opts:O.escuelas}), F('docente','Docente','select',{opts:O.docentes}), F('campo','Campo formativo','select',{opts:O.campos}), F('fortalezas','Fortalezas observadas','textarea',{span:1}), F('areas','Áreas de oportunidad','textarea',{span:1}), F('nivel','Valoración','select',{opts:['Destacado','Satisfactorio','En desarrollo','Requiere apoyo']})], cols:['fecha','escuela','docente','campo','nivel']},
+  acuerdos:{label:'Acuerdos', one:'acuerdo', fields:[F('acuerdo','Acuerdo','textarea',{req:1,span:1}), F('origen','Origen','select',{opts:['CTE','Visita','Reunión de directores','Academia']}), F('escuela','Escuela','select',{opts:O.escuelasZona}), F('responsable','Responsable'), F('limite','Fecha límite','date'), F('estado','Estado','select',{opts:['Pendiente','En proceso','Cumplido']})], cols:['acuerdo','origen','escuela','responsable','limite','estado']},
+  sesiones:{label:'Sesiones de CTE', one:'sesión', fields:[F('fecha','Fecha','date',{req:1}), F('sesion','Sesión','select',{opts:SESIONES_CTE}), F('escuela','Escuela','select',{opts:O.escuelasZona}), F('asistentes','Asistentes','number'), F('temas','Temas de la agenda','textarea',{span:1}), F('minuta','Minuta','textarea',{span:1})], cols:['fecha','sesion','escuela','asistentes']},
+  planeaciones:{label:'Planeaciones', one:'planeación', fields:[F('titulo','Título','text',{req:1,span:1}), F('docente','Docente','select',{opts:O.docentes}), F('grupo','Grupo','select',{opts:O.grupos}), F('campo','Campo formativo','select',{opts:O.campos}), F('periodo','Periodo','text',{ph:'Oct–Nov 2026'}), F('estado','Estado','select',{opts:['Borrador','Entregada','Revisada']})], cols:['titulo','docente','grupo','campo','estado']},
+  evidencias:{label:'Evidencias', one:'evidencia', fields:[F('titulo','Título','text',{req:1}), F('docente','Docente','select',{opts:O.docentes}), F('grupo','Grupo','select',{opts:O.grupos}), F('tipo','Tipo','select',{opts:['Fotografía','Producto','Video','Documento']}), F('fecha','Fecha','date'), F('descripcion','Descripción','textarea',{span:1}), F('foto','Fotografía','photo',{span:1})], cols:['titulo','docente','grupo','tipo','fecha']},
+  proyectos:{label:'Proyectos', one:'proyecto', fields:[F('nombre','Nombre del proyecto','text',{req:1,span:1}), F('docente','Docente','select',{opts:O.docentes}), F('grupo','Grupo','select',{opts:O.grupos}), F('escenario','Escenario','select',{opts:['Aula','Escolar','Comunitario']}), F('campo','Campo formativo','select',{opts:O.campos}), F('inicio','Inicio','date'), F('fin','Cierre','date'), F('estado','Estado','select',{opts:['Planeado','En curso','Concluido']})], cols:['nombre','grupo','escenario','campo','fin','estado']},
+  evaluaciones:{label:'Evaluaciones', one:'evaluación', fields:[F('docente','Docente','select',{opts:O.docentes}), F('grupo','Grupo','select',{opts:O.grupos}), F('campo','Campo formativo','select',{opts:O.campos}), F('periodo','Periodo','select',{opts:['1er periodo','2º periodo','3er periodo']}), F('promedio','Promedio del grupo','number',{step:'0.1'}), F('asistencia','Asistencia (%)','number'), F('enRiesgo','Alumnos en riesgo','number')], cols:['grupo','docente','campo','periodo','promedio','asistencia','enRiesgo']}
+};
+const LABEL = {};
+Object.values(ENT).forEach(e => e.fields.forEach(f => LABEL[f.k] = f.label));
+Object.assign(LABEL, {limite:'Límite', enRiesgo:'En riesgo', asistencia:'Asistencia', promedio:'Promedio', atp:'Visita', fin:'Cierre', cct:'CCT', funcion:'Grado/función', escuela:'Escuela', descripcion:'Descripción', nivel:'Valoración'});
+
+const CHIP = {Programada:'info', Realizada:'ok', Cancelada:'', Pendiente:'warn', 'En proceso':'info', Cumplido:'ok', Vencido:'bad', Borrador:'', Entregada:'info', Revisada:'ok', Planeado:'', 'En curso':'info', Concluido:'ok', Destacado:'ok', Satisfactorio:'info', 'En desarrollo':'warn', 'Requiere apoyo':'bad'};
+const chip = v => `<span class="chip ${CHIP[v] ?? ''}">${esc(v)}</span>`;
+const vencido = a => a.estado !== 'Cumplido' && a.limite && daysFrom(a.limite) < 0;
+
+function cell(ent, k, row) {
+  const v = row[k];
+  if (k === 'estado' || k === 'nivel') {
+    if (ent === 'acuerdos' && vencido(row)) return chip(v) + ' ' + chip('Vencido');
+    return chip(v);
+  }
+  if (['fecha','limite','inicio','fin'].includes(k)) return `<span class="num">${fmtD(v)}</span>`;
+  if (k === 'asistencia') return `<span class="num">${esc(v)}%</span>`;
+  if (typeof v === 'number') return `<span class="num">${v}</span>`;
+  return esc(v ?? '—');
+}
+
+/* ================= Tabla genérica ================= */
+function tableHTML(ent, opts = {}) {
+  const def = ENT[ent];
+  const w = canWrite(ent);
+  return `<div class="panel" data-ent="${ent}">
+    <div class="toolbar">
+      <div class="search">${ic('search')}<input class="input" id="q-${ent}" data-search="${ent}" placeholder="Buscar en ${esc(def.label.toLowerCase())}" value="${esc(UI.q[ent] || '')}"></div>
+      <span class="muted mini" id="count-${ent}"></span>
+      <span style="flex:1"></span>
+      ${opts.extra || ''}
+      ${w ? `<button class="btn primary" data-act="add" data-ent="${ent}">${ic('plus')}Agregar ${esc(def.one)}</button>` : `<span class="chip">Sólo lectura para ${esc(ROLES[ROLE])}</span>`}
+    </div>
+    <div class="tbl-wrap"><table><thead><tr>${def.cols.map(c => `<th>${esc(LABEL[c] || c)}</th>`).join('')}${w ? '<th></th>' : ''}</tr></thead><tbody id="tb-${ent}"></tbody></table></div>
+  </div>`;
+}
+function fillTable(ent) {
+  const tb = $('#tb-' + ent); if (!tb) return;
+  const def = ENT[ent]; const w = canWrite(ent);
+  const q = (UI.q[ent] || '').toLowerCase();
+  let rows = S[ent].filter(r => !q || def.cols.some(c => String(r[c] ?? '').toLowerCase().includes(q)));
+  if (rows.length && rows[0].fecha) rows = [...rows].sort((a,b) => (b.fecha||'').localeCompare(a.fecha||''));
+  $('#count-' + ent).textContent = `${rows.length} ${rows.length === 1 ? 'registro' : 'registros'}`;
+  if (!rows.length) {
+    tb.innerHTML = `<tr><td colspan="${def.cols.length + 1}"><div class="empty">${S[ent].length ? 'Ningún registro coincide con la búsqueda.' : `Aún no hay ${esc(def.label.toLowerCase())}.`}${w && !S[ent].length ? `<button class="btn primary" data-act="add" data-ent="${ent}">${ic('plus')}Agregar la primera</button>` : ''}</div></td></tr>`;
+    return;
+  }
+  tb.innerHTML = rows.map(r => `<tr>${def.cols.map(c => `<td class="${['acuerdo','descripcion','titulo','nombre'].includes(c) ? 'clip' : ''}">${cell(ent, c, r)}</td>`).join('')}${w ? `<td class="act"><button class="btn ghost sm" data-act="edit" data-ent="${ent}" data-id="${r.id}" aria-label="Editar">${ic('edit')}</button><button class="btn ghost sm danger" data-act="del" data-ent="${ent}" data-id="${r.id}" aria-label="Eliminar">${ic('trash')}</button></td>` : ''}</tr>`).join('');
+}
+
+/* ================= Modal y formularios ================= */
+function modal(html, cls = '') {
+  closeModal();
+  const bg = document.createElement('div');
+  bg.className = 'modal-bg'; bg.id = 'modal';
+  bg.innerHTML = `<div class="modal ${cls}" role="dialog" aria-modal="true">${html}</div>`;
+  bg.addEventListener('mousedown', e => { if (e.target === bg) closeModal(); });
+  document.body.appendChild(bg);
+  setTimeout(() => $('#modal input, #modal select, #modal textarea')?.focus(), 30);
+}
+function closeModal() { $('#modal')?.remove(); }
+let PHOTO = null;
+function openForm(ent, id, preset = {}) {
+  const def = ENT[ent];
+  const row = id ? S[ent].find(r => r.id === id) : {...preset};
+  PHOTO = row?.foto || null;
+  const fieldHTML = f => {
+    const v = row?.[f.k] ?? '';
+    const idf = `f-${f.k}`;
+    let inp;
+    if (f.type === 'select') {
+      const list = typeof f.opts === 'function' ? f.opts() : f.opts;
+      const all = v && !list.includes(v) ? [v, ...list] : list;
+      inp = `<select class="input" id="${idf}" name="${f.k}">${all.map(o => `<option ${o === v ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
+      if (!all.length) inp = `<select class="input" id="${idf}" name="${f.k}" disabled><option>Primero registra opciones en Configuración de la zona</option></select>`;
+    } else if (f.type === 'textarea') inp = `<textarea class="input" id="${idf}" name="${f.k}" ${f.req ? 'required' : ''}>${esc(v)}</textarea>`;
+    else if (f.type === 'photo') inp = `<div class="toolbar"><label class="btn" for="${idf}">${ic('photo')}Elegir fotografía</label><input type="file" id="${idf}" accept="image/*" hidden><span class="muted mini" id="photo-st">${PHOTO ? 'Fotografía cargada' : 'Sin fotografía'}</span></div><div id="photo-prev">${PHOTO ? `<img src="${PHOTO}" alt="" style="max-height:160px;border-radius:8px">` : ''}</div>`;
+    else inp = `<input class="input" id="${idf}" name="${f.k}" type="${f.type}" value="${esc(v)}" ${f.req ? 'required' : ''} ${f.ph ? `placeholder="${esc(f.ph)}"` : ''} ${f.step ? `step="${f.step}"` : ''}>`;
+    return `<div class="field ${f.span || f.type === 'textarea' ? 'span2' : ''}"><label for="${idf}">${esc(f.label)}</label>${inp}</div>`;
+  };
+  modal(`<form id="ent-form"><div class="modal-h"><h3>${id ? 'Editar' : 'Agregar'} ${esc(def.one)}</h3><button type="button" class="icon-btn" data-act="close" aria-label="Cerrar">${ic('x')}</button></div>
+    <div class="modal-b"><div class="grid2">${def.fields.map(fieldHTML).join('')}</div></div>
+    <div class="modal-f"><button type="button" class="btn" data-act="close">Cancelar</button><button class="btn primary" type="submit">${id ? 'Guardar cambios' : 'Agregar'}</button></div></form>`);
+  const pf = $('#f-foto');
+  if (pf) pf.addEventListener('change', async () => {
+    const file = pf.files[0]; if (!file) return;
+    $('#photo-st').textContent = 'Procesando…';
+    PHOTO = await shrinkImage(file);
+    $('#photo-st').textContent = 'Fotografía cargada';
+    $('#photo-prev').innerHTML = `<img src="${PHOTO}" alt="" style="max-height:160px;border-radius:8px">`;
+  });
+  $('#ent-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const obj = {};
+    def.fields.forEach(f => {
+      if (f.type === 'photo') { obj[f.k] = PHOTO || ''; return; }
+      let v = fd.get(f.k); if (v === null) v = '';
+      if (f.type === 'number') v = v === '' ? '' : Number(v);
+      obj[f.k] = v;
+    });
+    if (id) { Object.assign(row, obj); log(`Editó ${def.one}: ${obj[def.cols[0]] ?? ''}`); toast('Cambios guardados'); }
+    else { S[ent].push({id:uid(), ...obj}); log(`Agregó ${def.one}: ${obj[def.cols[0]] ?? ''}`); toast(`${def.one[0].toUpperCase() + def.one.slice(1)} agregada`); }
+    save(); closeModal(); render();
+  });
+}
+function shrinkImage(file) {
+  return new Promise(res => {
+    const img = new Image(); const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const m = 1000, s = Math.min(1, m / Math.max(img.width, img.height));
+      const c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', .72));
+    };
+    img.onerror = () => res('');
+    img.src = url;
+  });
+}
+let delPending = null;
+function askDelete(btn, ent, id) {
+  if (delPending === btn) {
+    const def = ENT[ent]; const r = S[ent].find(x => x.id === id);
+    S[ent] = S[ent].filter(x => x.id !== id);
+    log(`Eliminó ${def.one}: ${r?.[def.cols[0]] ?? ''}`); save(); toast('Registro eliminado'); delPending = null; render(); return;
+  }
+  delPending = btn; btn.innerHTML = '¿Eliminar? Sí'; btn.classList.remove('ghost');
+  setTimeout(() => { if (delPending === btn) { delPending = null; btn.innerHTML = ic('trash'); btn.classList.add('ghost'); } }, 3500);
+}
+function toast(msg) {
+  $('.toast')?.remove();
+  const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role','status'); t.textContent = msg;
+  document.body.appendChild(t); setTimeout(() => t.remove(), 2600);
+}
+
+/* ================= Gráficas ================= */
+function hbars(items, {stack = null, max = null} = {}) {
+  // items: [{label, values:[n,...]}]; stack: [{name, color}]
+  const W = 560, lw = 170, rh = 30, top = 6;
+  const H = top + items.length * rh + 22;
+  const tot = items.map(it => it.values.reduce((a,b) => a + b, 0));
+  const mx = max || Math.max(1, ...tot);
+  const step = mx <= 5 ? 1 : mx <= 10 ? 2 : Math.ceil(mx / 5);
+  const ticks = []; for (let t = 0; t <= mx; t += step) ticks.push(t);
+  const x = v => lw + (W - lw - 30) * v / mx;
+  let svg = `<svg class="chart" viewBox="0 0 ${W} ${H}" width="100%" role="img">`;
+  ticks.forEach(t => svg += `<line x1="${x(t)}" x2="${x(t)}" y1="${top}" y2="${H - 18}" stroke="var(--line)"/><text x="${x(t)}" y="${H - 4}" text-anchor="middle">${t}</text>`);
+  items.forEach((it, i) => {
+    const y = top + i * rh;
+    const lab = it.label.length > 24 ? it.label.slice(0, 23) + '…' : it.label;
+    svg += `<text class="lbl" x="${lw - 10}" y="${y + rh / 2 + 4}" text-anchor="end">${esc(lab)}</text>`;
+    let acc = 0;
+    it.values.forEach((v, j) => {
+      if (!v) return;
+      svg += `<rect x="${x(acc)}" y="${y + 6}" width="${Math.max(2, x(acc + v) - x(acc))}" height="${rh - 12}" rx="3" fill="${stack ? stack[j].color : 'var(--accent)'}"/>`;
+      acc += v;
+    });
+    svg += `<text x="${x(acc) + 6}" y="${y + rh / 2 + 4}" style="fill:var(--fg);font-weight:600">${it.display ?? acc}</text>`;
+  });
+  svg += '</svg>';
+  const leg = stack ? `<div class="legend">${stack.map(s => `<span><i style="background:${s.color}"></i>${esc(s.name)}</span>`).join('')}</div>` : '';
+  return leg + `<div style="overflow-x:auto">${svg}</div>`;
+}
+function ring(parts, center, sub) {
+  const tot = parts.reduce((a, p) => a + p.v, 0) || 1, R = 52, C = 2 * Math.PI * R;
+  let off = 0, s = `<svg viewBox="0 0 140 140" width="140" height="140" role="img"><circle cx="70" cy="70" r="${R}" fill="none" stroke="var(--surface-2)" stroke-width="16"/>`;
+  parts.forEach(p => { const len = C * p.v / tot; if (p.v) s += `<circle cx="70" cy="70" r="${R}" fill="none" stroke="${p.color}" stroke-width="16" stroke-dasharray="${len} ${C - len}" stroke-dashoffset="${-off}" transform="rotate(-90 70 70)"/>`; off += len; });
+  s += `<text x="70" y="70" text-anchor="middle" style="fill:var(--fg);font-size:24px;font-weight:700;font-family:var(--f-ui)">${center}</text><text x="70" y="88" text-anchor="middle" style="fill:var(--muted);font-size:10.5px;font-family:var(--f-ui)">${sub}</text></svg>`;
+  return `<div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap">${s}<div class="legend" style="flex-direction:column;gap:6px">${parts.map(p => `<span><i style="background:${p.color}"></i>${esc(p.name)}: <b class="num" style="color:var(--fg)">${p.v}</b></span>`).join('')}</div></div>`;
+}
+
+/* ================= Indicadores ================= */
+function escuelaStats(e) {
+  const vis = S.visitas.filter(v => v.escuela === e.nombre);
+  const real = vis.filter(v => v.estado === 'Realizada').sort((a,b) => b.fecha.localeCompare(a.fecha));
+  const acu = S.acuerdos.filter(a => a.escuela === e.nombre && a.estado !== 'Cumplido');
+  const venc = acu.filter(vencido).length;
+  const ult = real[0]?.fecha;
+  const sin = ult ? -daysFrom(ult) : 999;
+  const sem = venc > 0 || sin > 45 ? 'bad' : (acu.length > 2 || sin > 30 ? 'warn' : 'ok');
+  return {docentes:S.personal.filter(p => p.rol === 'Docente' && p.escuela === e.nombre).length, grupos:S.grupos.filter(g => g.escuela === e.nombre).length,
+    prog:vis.filter(v => v.estado === 'Programada').length, real:real.length, canc:vis.filter(v => v.estado === 'Cancelada').length, ult, abiertos:acu.length, venc, sin, sem};
+}
+const SEMTXT = {ok:'En orden', warn:'Atención', bad:'Prioridad'};
+function alertas() {
+  const a = [];
+  S.acuerdos.filter(vencido).forEach(x => a.push({lvl:'bad', txt:`Acuerdo vencido (${fmtD(x.limite)}): ${x.acuerdo}`, sub:`${x.escuela} · ${x.responsable}`, go:'cte', tab:'acuerdos'}));
+  S.escuelas.forEach(e => { const st = escuelaStats(e); if (st.sin > 30) a.push({lvl:'warn', txt:`${e.nombre} no recibe visita realizada ${st.ult ? `desde hace ${st.sin} días` : 'en este ciclo'}.`, sub:e.cct, go:'acompanamiento', tab:'visitas'}); });
+  S.visitas.filter(v => v.estado === 'Programada' && daysFrom(v.fecha) >= 0 && daysFrom(v.fecha) <= 7).forEach(v => a.push({lvl:'info', txt:`Visita ${daysFrom(v.fecha) === 0 ? 'hoy' : daysFrom(v.fecha) === 1 ? 'mañana' : 'el ' + fmtD(v.fecha)}: ${v.escuela}`, sub:`${v.tipo} · ${v.atp}`, go:'acompanamiento', tab:'visitas'}));
+  S.sesiones.filter(s => daysFrom(s.fecha) >= 0 && daysFrom(s.fecha) <= 7).forEach(s => a.push({lvl:'info', txt:`${s.sesion} del CTE el ${fmtD(s.fecha)}`, sub:'Prepara la agenda y la minuta', go:'cte', tab:'sesiones'}));
+  const pend = S.planeaciones.filter(p => p.estado === 'Entregada').length;
+  if (pend) a.push({lvl:'info', txt:`${pend} ${pend === 1 ? 'planeación espera' : 'planeaciones esperan'} revisión.`, sub:'Trabajo docente', go:'docente', tab:'planeaciones'});
+  const falt = (Number(S.zona.numEscuelas) || 0) - S.escuelas.length;
+  if (falt > 0) a.push({lvl:'info', txt:`Faltan ${falt} escuelas por registrar de las ${S.zona.numEscuelas} de la zona.`, sub:'Configuración de la zona', go:'zona', tab:'escuelas'});
+  const riesgo = S.evaluaciones.filter(e => Number(e.enRiesgo) >= 5);
+  riesgo.forEach(e => a.push({lvl:'warn', txt:`${e.grupo} tiene ${e.enRiesgo} alumnos en riesgo (promedio ${e.promedio}).`, sub:e.docente, go:'docente', tab:'seguimiento'}));
+  const order = {bad:0, warn:1, info:2};
+  return a.sort((x, y) => order[x.lvl] - order[y.lvl]);
+}
+const alertDot = l => `<span class="dot ${l === 'info' ? '' : l}" style="${l === 'info' ? 'background:var(--info)' : ''}"></span>`;
+function alertsHTML(list, max = 6) {
+  if (!list.length) return `<div class="empty">${ic('check')}Sin alertas. Todo está al día.</div>`;
+  return `<div class="alerts">${list.slice(0, max).map(a => `<div class="alert">${alertDot(a.lvl)}<div><div>${esc(a.txt)}</div><div class="li-sub">${esc(a.sub)}</div></div><a data-go="${a.go}" data-tab="${a.tab}">Ver</a></div>`).join('')}</div>${list.length > max ? `<p class="muted mini">y ${list.length - max} alertas más.</p>` : ''}`;
+}
+const kpi = (label, val, sub, bar) => `<div class="kpi"><span class="k-label">${label}</span><span class="k-val">${val}</span>${bar != null ? `<div class="bar ${bar >= 80 ? 'ok' : ''}"><i style="width:${Math.min(100, bar)}%"></i></div>` : ''}<span class="k-sub">${sub}</span></div>`;
+function agendaHTML(list) {
+  if (!list.length) return `<div class="empty">No hay visitas próximas.</div>`;
+  return `<div class="list">${list.map(v => { const d = parseD(v.fecha); return `<div class="li"><div class="date-badge"><b>${d.getDate()}</b><span>${MESES[d.getMonth()]}</span></div><div style="min-width:0"><div class="li-title">${esc(v.escuela)}</div><div class="li-sub">${esc(v.tipo)} · ${esc(v.docente !== '—' ? v.docente : 'Escuela completa')} · ${esc(v.atp)}</div></div>${chip(v.estado)}</div>`; }).join('')}</div>`;
+}
+
+/* ================= Vistas ================= */
+function pageHead(t, p, act = '') { return `<div class="page-head"><div><div class="eyebrow">${esc(S.zona.nombre || 'Mi zona')} · Ciclo ${esc(S.zona.ciclo || '')}</div><h1>${t}</h1>${p ? `<p>${p}</p>` : ''}</div><div class="actions">${act}</div></div>`; }
+function subtabs(view, tabs) {
+  const cur = UI.tab[view] || tabs[0][0];
+  return `<div class="subtabs" role="tablist">${tabs.map(([k, l]) => `<button class="tab" role="tab" aria-selected="${k === cur}" data-subtab="${view}" data-k="${k}">${esc(l)}</button>`).join('')}</div>`;
+}
+const curTab = (v, d) => UI.tab[v] || d;
+
+function setupChecklist() {
+  const items = [
+    ['Registrar escuelas', S.escuelas.length >= (Number(S.zona.numEscuelas) || 1), 'zona', 'escuelas'],
+    ['Registrar directores', S.personal.some(p => p.rol === 'Director'), 'zona', 'personal'],
+    ['Registrar ATP', S.personal.some(p => p.rol === 'ATP'), 'zona', 'personal'],
+    ['Registrar docentes', S.personal.some(p => p.rol === 'Docente'), 'zona', 'personal'],
+    ['Crear grupos', S.grupos.length > 0, 'zona', 'grupos'],
+    ['Formar academias', S.academias.length > 0, 'zona', 'academias'],
+    ['Programar la primera visita', S.visitas.length > 0, 'acompanamiento', 'visitas'],
+    ['Registrar una sesión de CTE', S.sesiones.length > 0, 'cte', 'sesiones']];
+  const done = items.filter(i => i[1]).length;
+  if (done === items.length) return '';
+  return `<div class="panel"><div class="panel-h"><div><h3>Construye tu plataforma paso a paso</h3><p class="muted mini">Captura la información poco a poco; cada paso activa más indicadores y reportes.</p></div><span class="chip info num">${done} de ${items.length}</span></div>
+    <div class="bar"><i style="width:${pct(done, items.length)}%"></i></div>
+    <div class="checklist">${items.map(([t, ok, go, tab]) => `<button class="check ${ok ? 'done' : ''}" data-go="${go}" data-tab="${tab}"><span class="ck">${ok ? ic('check') : ''}</span>${esc(t)}</button>`).join('')}</div></div>`;
+}
+
+function viewInicio() {
+  if (ROLE === 'atp') return inicioATP();
+  if (ROLE === 'director') return inicioDirector();
+  if (ROLE === 'docente') return inicioDocente();
+  const z = S.zona;
+  const vt = S.visitas.filter(v => v.estado !== 'Cancelada').length, vr = S.visitas.filter(v => v.estado === 'Realizada').length;
+  const at = S.acuerdos.length, ac = S.acuerdos.filter(a => a.estado === 'Cumplido').length;
+  const docs = S.personal.filter(p => p.rol === 'Docente').length;
+  const al = alertas();
+  const h = new Date().getHours();
+  return pageHead(`${h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches'}, ${esc(z.supervisor || SESSION.nombre)}`, `Visión general de la ${esc(z.nombre)} · ${esc(z.nivel)} · ${esc(z.estado)}`,
+    `<button class="btn" data-go="reportes">${ic('chart')}Reportes</button><button class="btn primary" data-act="add" data-ent="visitas">${ic('plus')}Programar visita</button>`)
+  + setupChecklist()
+  + `<div class="kpis">
+      ${kpi('Escuelas registradas', `${S.escuelas.length}<span class="muted" style="font-size:16px"> / ${z.numEscuelas || S.escuelas.length}</span>`, `${S.escuelas.reduce((a, e) => a + (Number(e.matricula) || 0), 0).toLocaleString('es-MX')} alumnos en total`)}
+      ${kpi('Personal docente', docs, `${S.personal.filter(p => p.rol === 'Director').length} directores · ${S.personal.filter(p => p.rol === 'ATP').length} ATP`)}
+      ${kpi('Avance de visitas', pct(vr, vt) + '%', `${vr} realizadas de ${vt} programadas`, pct(vr, vt))}
+      ${kpi('Acuerdos cumplidos', pct(ac, at) + '%', `${ac} de ${at} · ${S.acuerdos.filter(vencido).length} vencidos`, pct(ac, at))}
+    </div>
+    <div class="cols">
+      <div class="panel"><div class="panel-h"><h3>Visitas por escuela</h3><a class="mini" data-go="acompanamiento" data-tab="visitas" style="cursor:pointer;font-weight:600">Ver agenda</a></div>
+        ${S.escuelas.length ? hbars(S.escuelas.map(e => { const s = escuelaStats(e); return {label:e.nombre, values:[s.real, s.prog]}; }), {stack:[{name:'Realizadas', color:'var(--accent)'}, {name:'Programadas', color:'var(--oro)'}]}) : '<div class="empty">Registra escuelas para ver esta gráfica.</div>'}
+      </div>
+      <div class="panel"><div class="panel-h"><h3>Alertas automáticas</h3><span class="chip ${al.some(a => a.lvl === 'bad') ? 'bad' : 'info'} num">${al.length}</span></div>${alertsHTML(al)}</div>
+    </div>
+    <div class="cols">
+      <div class="panel"><div class="panel-h"><h3>Indicadores por escuela</h3><span class="legend"><span><span class="dot ok"></span> En orden</span><span><span class="dot warn"></span> Atención</span><span><span class="dot bad"></span> Prioridad</span></span></div>
+        <div class="tbl-wrap"><table><thead><tr><th>Escuela</th><th>Matrícula</th><th>Docentes</th><th>Última visita</th><th>Acuerdos abiertos</th><th>Estado</th></tr></thead><tbody>
+        ${S.escuelas.map(e => { const s = escuelaStats(e); return `<tr><td><b>${esc(e.nombre)}</b><div class="li-sub">${esc(e.cct)} · ${esc(e.turno)}</div></td><td class="num">${e.matricula || '—'}</td><td class="num">${s.docentes}</td><td class="num">${s.ult ? fmtD(s.ult) : 'Sin visita'}</td><td class="num">${s.abiertos}${s.venc ? ` <span class="chip bad">${s.venc} vencido${s.venc > 1 ? 's' : ''}</span>` : ''}</td><td><span class="sem"><span class="dot ${s.sem}"></span>${SEMTXT[s.sem]}</span></td></tr>`; }).join('') || `<tr><td colspan="6"><div class="empty">Sin escuelas registradas.</div></td></tr>`}
+        </tbody></table></div></div>
+      <div class="panel"><div class="panel-h"><h3>Seguimiento de acuerdos</h3></div>
+        ${ring([{name:'Cumplidos', v:ac, color:'var(--ok)'}, {name:'En proceso', v:S.acuerdos.filter(a => a.estado === 'En proceso' && !vencido(a)).length, color:'var(--info)'}, {name:'Pendientes', v:S.acuerdos.filter(a => a.estado === 'Pendiente' && !vencido(a)).length, color:'var(--warn)'}, {name:'Vencidos', v:S.acuerdos.filter(vencido).length, color:'var(--bad)'}], pct(ac, at) + '%', 'cumplidos')}
+        <h3 style="font-size:14px">Próximas visitas</h3>
+        ${agendaHTML(S.visitas.filter(v => v.estado === 'Programada' && daysFrom(v.fecha) >= 0).sort((a, b) => a.fecha.localeCompare(b.fecha)).slice(0, 4))}
+      </div>
+    </div>`;
+}
+function me(rol) { return S.personal.find(p => p.rol === rol); }
+function inicioATP() {
+  const yo = me('ATP'); const n = yo?.nombre;
+  const mis = S.visitas.filter(v => !n || v.atp === n);
+  const mes = mis.filter(v => { const d = parseD(v.fecha), t = today(); return d.getMonth() === t.getMonth() && d.getFullYear() === t.getFullYear(); });
+  const segu = [...new Set(S.observaciones.filter(o => ['En desarrollo','Requiere apoyo'].includes(o.nivel)).map(o => o.docente))];
+  const inf = S.repositorio.filter(r => r.carpeta === 'Informes' && r.tipo === 'txt').length;
+  return pageHead(`Hola, ${esc(n || SESSION.nombre)}`, 'Tu agenda de acompañamiento, observaciones y seguimiento a docentes.',
+    `<button class="btn" data-act="add" data-ent="observaciones">${ic('plus')}Registrar observación</button><button class="btn primary" data-go="ia">${ic('spark')}Generar informe con IA</button>`)
+  + `<div class="kpis">${kpi('Visitas este mes', mes.length, `${mes.filter(v => v.estado === 'Realizada').length} realizadas`)}${kpi('Observaciones registradas', S.observaciones.length, 'en el ciclo escolar')}${kpi('Docentes en seguimiento', segu.length, 'valorados en desarrollo o con apoyo')}${kpi('Informes generados', inf, 'guardados en el repositorio')}</div>
+  <div class="cols">
+    <div class="panel"><div class="panel-h"><h3>Agenda de acompañamiento</h3><button class="btn sm" data-act="add" data-ent="visitas">${ic('plus')}Programar</button></div>${agendaHTML(mis.filter(v => v.estado === 'Programada').sort((a, b) => a.fecha.localeCompare(b.fecha)).slice(0, 6))}</div>
+    <div class="panel"><div class="panel-h"><h3>Docentes que requieren seguimiento</h3></div>
+      ${segu.length ? `<div class="list">${segu.map(d => { const o = S.observaciones.filter(x => x.docente === d).sort((a, b) => b.fecha.localeCompare(a.fecha))[0]; return `<div class="li"><span class="dot ${o.nivel === 'Requiere apoyo' ? 'bad' : 'warn'}"></span><div style="min-width:0"><div class="li-title">${esc(d)}</div><div class="li-sub">${esc(o.escuela)} · ${esc(o.areas)}</div></div>${chip(o.nivel)}</div>`; }).join('')}</div>` : '<div class="empty">Ningún docente en seguimiento.</div>'}
+    </div>
+  </div>
+  <div class="panel"><div class="panel-h"><h3>Observaciones recientes</h3><a class="mini" data-go="acompanamiento" data-tab="observaciones" style="cursor:pointer;font-weight:600">Ver todas</a></div>
+    <div class="list">${S.observaciones.slice().sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 4).map(o => { const d = parseD(o.fecha); return `<div class="li"><div class="date-badge"><b>${d.getDate()}</b><span>${MESES[d.getMonth()]}</span></div><div style="min-width:0"><div class="li-title">${esc(o.docente)} · ${esc(o.campo)}</div><div class="li-sub">${esc(o.fortalezas)}</div></div>${chip(o.nivel)}</div>`; }).join('') || '<div class="empty">Sin observaciones.</div>'}</div></div>`;
+}
+function inicioDirector() {
+  const yo = me('Director'); const esc0 = S.escuelas.find(e => e.nombre === yo?.escuela) || S.escuelas[0];
+  if (!esc0) return pageHead('Inicio', '') + '<div class="panel"><div class="empty">Aún no hay escuelas registradas en la zona.</div></div>';
+  const st = escuelaStats(esc0);
+  const acu = S.acuerdos.filter(a => (a.escuela === esc0.nombre || a.escuela === 'Toda la zona') && a.estado !== 'Cumplido');
+  const docs = S.personal.filter(p => p.rol === 'Docente' && p.escuela === esc0.nombre).map(p => p.nombre);
+  const plan = S.planeaciones.filter(p => docs.includes(p.docente));
+  const prox = S.sesiones.filter(s => daysFrom(s.fecha) >= 0).sort((a, b) => a.fecha.localeCompare(b.fecha))[0];
+  return pageHead(`Escuela ${esc(esc0.nombre)}`, `${esc(esc0.cct)} · ${esc(esc0.turno)} · Director(a): ${esc(yo?.nombre || '—')}`, `<button class="btn primary" data-go="cte">${ic('people')}Consejo Técnico</button>`)
+  + `<div class="kpis">${kpi('Matrícula', esc0.matricula || '—', 'alumnos inscritos')}${kpi('Docentes', st.docentes, `${st.grupos} grupos`)}${kpi('Visitas recibidas', st.real, st.ult ? `Última: ${fmtD(st.ult)}` : 'Sin visitas aún')}${kpi('Acuerdos abiertos', acu.length, `${acu.filter(vencido).length} vencidos`)}</div>
+  <div class="cols even">
+    <div class="panel"><div class="panel-h"><h3>Acuerdos de mi escuela</h3></div><div class="list">${acu.map(a => `<div class="li"><span class="dot ${vencido(a) ? 'bad' : 'warn'}"></span><div style="min-width:0"><div class="li-title">${esc(a.acuerdo)}</div><div class="li-sub">${esc(a.responsable)} · límite ${fmtD(a.limite)}</div></div>${vencido(a) ? chip('Vencido') : chip(a.estado)}</div>`).join('') || '<div class="empty">Sin acuerdos pendientes.</div>'}</div></div>
+    <div class="panel"><div class="panel-h"><h3>Planeaciones de mis docentes</h3></div><div class="list">${plan.map(p => `<div class="li"><span></span><div style="min-width:0"><div class="li-title">${esc(p.titulo)}</div><div class="li-sub">${esc(p.docente)} · ${esc(p.grupo)}</div></div>${chip(p.estado)}</div>`).join('') || '<div class="empty">Sin planeaciones registradas.</div>'}</div>
+      ${prox ? `<div class="note"><b>Próxima sesión de CTE:</b> ${esc(prox.sesion)}, ${fmtD(prox.fecha)}. Temas: ${esc(prox.temas)}</div>` : ''}</div>
+  </div>`;
+}
+function inicioDocente() {
+  const yo = me('Docente'); const n = yo?.nombre;
+  const f = arr => arr.filter(x => x.docente === n);
+  const ev = f(S.evaluaciones)[0];
+  return pageHead(`Hola, ${esc(n || SESSION.nombre)}`, `${esc(yo?.escuela || '')} · Grupo ${esc(yo?.funcion || '')}`, `<button class="btn" data-act="add" data-ent="evidencias">${ic('photo')}Subir evidencia</button><button class="btn primary" data-go="ia">${ic('spark')}Proponer actividades NEM</button>`)
+  + `<div class="kpis">${kpi('Planeaciones', f(S.planeaciones).length, `${f(S.planeaciones).filter(p => p.estado === 'Revisada').length} revisadas`)}${kpi('Evidencias', f(S.evidencias).length, 'registradas')}${kpi('Proyectos en curso', f(S.proyectos).filter(p => p.estado === 'En curso').length, `${f(S.proyectos).length} en total`)}${kpi('Promedio del grupo', ev ? ev.promedio : '—', ev ? `${ev.enRiesgo} alumnos en riesgo · ${ev.periodo}` : 'Sin evaluaciones')}</div>
+  <div class="cols even">
+    <div class="panel"><div class="panel-h"><h3>Mis proyectos</h3><button class="btn sm" data-act="add" data-ent="proyectos">${ic('plus')}Nuevo</button></div><div class="list">${f(S.proyectos).map(p => `<div class="li"><span></span><div style="min-width:0"><div class="li-title">${esc(p.nombre)}</div><div class="li-sub">Escenario ${esc(p.escenario).toLowerCase()} · ${esc(p.campo)} · cierre ${fmtD(p.fin)}</div></div>${chip(p.estado)}</div>`).join('') || '<div class="empty">Sin proyectos.</div>'}</div></div>
+    <div class="panel"><div class="panel-h"><h3>Mis planeaciones</h3><button class="btn sm" data-act="add" data-ent="planeaciones">${ic('plus')}Nueva</button></div><div class="list">${f(S.planeaciones).map(p => `<div class="li"><span></span><div style="min-width:0"><div class="li-title">${esc(p.titulo)}</div><div class="li-sub">${esc(p.campo)} · ${esc(p.periodo)}</div></div>${chip(p.estado)}</div>`).join('') || '<div class="empty">Sin planeaciones.</div>'}</div></div>
+  </div>`;
+}
+
+function datosZonaForm() {
+  const z = S.zona; const w = ROLE === 'supervisor';
+  const f = (k, l, t = 'text') => `<div class="field"><label for="z-${k}">${l}</label><input class="input" id="z-${k}" name="${k}" type="${t}" value="${esc(z[k] ?? '')}" ${w ? '' : 'disabled'}></div>`;
+  const sel = (k, l, list) => `<div class="field"><label for="z-${k}">${l}</label><select class="input" id="z-${k}" name="${k}" ${w ? '' : 'disabled'}>${list.map(o => `<option ${o === z[k] ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select></div>`;
+  return `<form class="panel" id="zona-form"><div class="panel-h"><h3>Datos generales de la zona</h3>${w ? `<button class="btn primary" type="submit">Guardar</button>` : ''}</div>
+    <div class="grid3">${f('nombre','Nombre de la zona')}${f('clave','Número de zona')}${sel('nivel','Nivel educativo',NIVELES)}${sel('estado','Estado',ESTADOS)}${f('municipio','Municipio sede')}${f('sector','Sector')}${f('numEscuelas','Número de escuelas','number')}${f('supervisor','Supervisor(a)')}${f('correo','Correo de la supervisión','email')}${f('telefono','Teléfono')}${f('sede','Domicilio de la supervisión')}${f('ciclo','Ciclo escolar')}</div></form>`;
+}
+function viewZona() {
+  const t = curTab('zona', 'escuelas');
+  return pageHead('Configuración de la zona', 'Agrega y actualiza escuelas, personal, grupos, campos formativos y academias. Puedes capturar la información poco a poco.')
+  + subtabs('zona', [['escuelas','Escuelas'],['personal','Personal'],['grupos','Grupos'],['campos','Campos formativos'],['academias','Academias'],['datos','Datos de la zona']])
+  + (t === 'datos' ? datosZonaForm() : tableHTML(t));
+}
+function viewAcomp() {
+  const t = curTab('acompanamiento', 'visitas');
+  let body = '';
+  if (t === 'visitas' || t === 'observaciones') body = tableHTML(t);
+  if (t === 'seguimiento') {
+    const docs = S.personal.filter(p => p.rol === 'Docente');
+    body = `<div class="tbl-wrap"><table><thead><tr><th>Docente</th><th>Escuela</th><th>Visitas</th><th>Observaciones</th><th>Última valoración</th><th>Acuerdos abiertos</th><th></th></tr></thead><tbody>${docs.map(d => {
+      const obs = S.observaciones.filter(o => o.docente === d.nombre).sort((a, b) => b.fecha.localeCompare(a.fecha));
+      const vis = S.visitas.filter(v => v.docente === d.nombre && v.estado === 'Realizada').length;
+      const ac = S.acuerdos.filter(a => a.responsable === d.nombre && a.estado !== 'Cumplido').length;
+      return `<tr><td><b>${esc(d.nombre)}</b><div class="li-sub">${esc(d.funcion)}</div></td><td>${esc(d.escuela)}</td><td class="num">${vis}</td><td class="num">${obs.length}</td><td>${obs[0] ? chip(obs[0].nivel) : '<span class="muted">Sin observar</span>'}</td><td class="num">${ac}</td><td class="act"><button class="btn sm" data-act="ia-docente" data-name="${esc(d.nombre)}">${ic('spark')}Plan de intervención</button></td></tr>`;
+    }).join('') || '<tr><td colspan="7"><div class="empty">Registra docentes en Configuración de la zona.</div></td></tr>'}</tbody></table></div>`;
+  }
+  if (t === 'evidencias') body = galleryHTML();
+  if (t === 'informes') {
+    const inf = S.repositorio.filter(r => r.carpeta === 'Informes');
+    body = `<div class="panel"><div class="panel-h"><h3>Informes de visita y reportes</h3><button class="btn primary" data-go="ia">${ic('spark')}Generar nuevo informe</button></div>${repoListHTML(inf)}</div>`;
+  }
+  return pageHead('Acompañamiento ATP', 'Agenda de visitas, registro de observaciones, seguimiento docente, evidencias e informes.', `<button class="btn" data-go="reportes">${ic('chart')}Reportes automáticos</button>`)
+  + subtabs('acompanamiento', [['visitas','Agenda'],['observaciones','Observaciones'],['seguimiento','Seguimiento docente'],['evidencias','Evidencias fotográficas'],['informes','Informes']]) + body;
+}
+function galleryHTML() {
+  const w = canWrite('evidencias');
+  const list = S.evidencias.slice().sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
+  return `<div class="panel"><div class="panel-h"><h3>Evidencias</h3>${w ? `<button class="btn primary" data-act="add" data-ent="evidencias">${ic('photo')}Agregar evidencia</button>` : ''}</div>
+  ${list.length ? `<div class="gallery">${list.map(e => `<div class="ev"><div class="ph">${e.foto ? `<img src="${e.foto}" alt="${esc(e.titulo)}">` : ic('photo')}</div><div class="ev-b"><b style="font-size:13px">${esc(e.titulo)}</b><span class="li-sub">${esc(e.grupo)} · ${esc(e.docente)}</span><span class="li-sub num">${esc(e.tipo)} · ${fmtD(e.fecha)}</span>${w ? `<div style="display:flex;gap:4px;margin-top:4px"><button class="btn ghost sm" data-act="edit" data-ent="evidencias" data-id="${e.id}">${ic('edit')}Editar</button><button class="btn ghost sm danger" data-act="del" data-ent="evidencias" data-id="${e.id}" aria-label="Eliminar">${ic('trash')}</button></div>` : ''}</div></div>`).join('')}</div>` : '<div class="empty">Aún no hay evidencias.</div>'}</div>`;
+}
+function viewDocente() {
+  const t = curTab('docente', 'planeaciones');
+  let body = '';
+  if (['planeaciones','proyectos','evaluaciones'].includes(t)) body = tableHTML(t);
+  if (t === 'evidencias') body = galleryHTML();
+  if (t === 'seguimiento') {
+    const ev = S.evaluaciones;
+    body = `<div class="cols even"><div class="panel"><div class="panel-h"><h3>Promedio por grupo</h3></div>${ev.length ? hbars(ev.map(e => ({label:`${e.grupo} · ${e.campo.split(' ')[0]}`, values:[Number(e.promedio) || 0], display:e.promedio})), {max:10}) : '<div class="empty">Sin evaluaciones registradas.</div>'}</div>
+      <div class="panel"><div class="panel-h"><h3>Alumnos en riesgo de rezago</h3></div>${ev.length ? hbars(ev.map(e => ({label:e.grupo, values:[Number(e.enRiesgo) || 0]})), {stack:[{name:'Alumnos en riesgo', color:'var(--bad)'}]}) : '<div class="empty">Sin datos.</div>'}
+      <p class="muted mini">Los grupos con 5 o más alumnos en riesgo generan una alerta automática en el panel de la supervisión.</p></div></div>`;
+  }
+  return pageHead('Trabajo docente', 'Planeaciones, evidencias, proyectos, evaluaciones y seguimiento académico de los grupos.')
+  + subtabs('docente', [['planeaciones','Planeaciones'],['evidencias','Evidencias'],['proyectos','Proyectos'],['evaluaciones','Evaluaciones'],['seguimiento','Seguimiento académico']]) + body;
+}
+function viewCTE() {
+  const t = curTab('cte', 'sesiones');
+  let body = '';
+  if (t === 'sesiones') {
+    const w = canWrite('sesiones');
+    const list = S.sesiones.slice().sort((a, b) => b.fecha.localeCompare(a.fecha));
+    body = `<div class="panel"><div class="panel-h"><h3>Sesiones y minutas</h3>${w ? `<button class="btn primary" data-act="add" data-ent="sesiones">${ic('plus')}Registrar sesión</button>` : ''}</div>
+      <div class="list">${list.map(s => { const d = parseD(s.fecha); const fut = daysFrom(s.fecha) >= 0; return `<div class="li" style="align-items:start"><div class="date-badge"><b>${d.getDate()}</b><span>${MESES[d.getMonth()]}</span></div><div style="min-width:0;display:flex;flex-direction:column;gap:4px"><div class="li-title">${esc(s.sesion)} · ${esc(s.escuela)}</div><div class="li-sub"><b>Temas:</b> ${esc(s.temas)}</div>${s.minuta ? `<div class="li-sub"><b>Minuta:</b> ${esc(s.minuta)}</div>` : `<div class="li-sub">${fut ? 'Sesión programada. La minuta se captura al concluir.' : 'Sin minuta capturada.'}</div>`}${s.asistentes ? `<div class="li-sub num">${s.asistentes} asistentes · ${S.acuerdos.filter(a => a.origen === 'CTE' && (a.escuela === s.escuela)).length} acuerdos de CTE registrados</div>` : ''}</div><div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">${fut ? chip('Programada') : chip('Realizada')}${w ? `<button class="btn ghost sm" data-act="edit" data-ent="sesiones" data-id="${s.id}" aria-label="Editar">${ic('edit')}</button><button class="btn ghost sm" data-act="ia-minuta" data-id="${s.id}">${ic('spark')}Minuta con IA</button>` : ''}</div></div>`; }).join('') || '<div class="empty">Aún no hay sesiones registradas.</div>'}</div></div>`;
+  }
+  if (t === 'acuerdos') body = tableHTML('acuerdos');
+  if (t === 'seguimiento') {
+    const by = ['CTE','Visita','Reunión de directores','Academia'].map(o => { const l = S.acuerdos.filter(a => a.origen === o); return {label:o, values:[l.filter(a => a.estado === 'Cumplido').length, l.filter(a => a.estado !== 'Cumplido' && !vencido(a)).length, l.filter(vencido).length]}; });
+    const venc = S.acuerdos.filter(vencido);
+    body = `<div class="cols even"><div class="panel"><div class="panel-h"><h3>Acuerdos por origen</h3></div>${hbars(by, {stack:[{name:'Cumplidos', color:'var(--ok)'}, {name:'Abiertos', color:'var(--oro)'}, {name:'Vencidos', color:'var(--bad)'}]})}</div>
+    <div class="panel"><div class="panel-h"><h3>Acuerdos vencidos</h3><span class="chip bad num">${venc.length}</span></div><div class="list">${venc.map(a => `<div class="li"><span class="dot bad"></span><div style="min-width:0"><div class="li-title">${esc(a.acuerdo)}</div><div class="li-sub">${esc(a.responsable)} · venció el ${fmtD(a.limite)} (hace ${-daysFrom(a.limite)} días)</div></div>${canWrite('acuerdos') ? `<button class="btn sm" data-act="cumplir" data-id="${a.id}">${ic('check')}Cumplido</button>` : ''}</div>`).join('') || '<div class="empty">No hay acuerdos vencidos.</div>'}</div></div></div>`;
+  }
+  if (t === 'evidencias') body = repoPanelHTML('CTE');
+  return pageHead('Consejo Técnico Escolar', 'Minutas, acuerdos, seguimiento y evidencias de las sesiones de CTE.')
+  + subtabs('cte', [['sesiones','Minutas'],['acuerdos','Acuerdos'],['seguimiento','Seguimiento'],['evidencias','Evidencias']]) + body;
+}
+
+/* ================= IA ================= */
+const IA_TYPES = {
+  informe:{t:'Informe de visita', d:'Informe formal a partir de una visita y sus observaciones.'},
+  observaciones:{t:'Observaciones pedagógicas', d:'Retroalimentación al docente con base en la clase observada.'},
+  estrategias:{t:'Estrategias de mejora', d:'Acciones concretas para la escuela o el docente.'},
+  reporte:{t:'Reporte SEP', d:'Reporte institucional de la zona con indicadores.'},
+  intervencion:{t:'Plan de intervención', d:'Plan con objetivos, acciones, responsables y plazos.'},
+  actividades:{t:'Actividades NEM', d:'Propuesta de actividades por proyectos y campos formativos.'},
+  minuta:{t:'Minuta de CTE', d:'Redacción de la minuta y acuerdos de una sesión.'}
+};
+let SAMPLE = null, iaCtl = null, iaBusy = false;
+function viewIA() {
+  const opt = (list, id, sel = '') => `<select class="input" id="${id}">${list.map(o => `<option ${o === sel ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
+  const visList = ['Ninguna', ...S.visitas.filter(v => v.estado === 'Realizada').sort((a, b) => b.fecha.localeCompare(a.fecha)).map(v => `${fmtD(v.fecha)} · ${v.escuela}`)];
+  const sesList = ['Ninguna', ...S.sesiones.map(s => `${s.sesion} · ${fmtD(s.fecha)}`)];
+  return pageHead('Asistente de Inteligencia Artificial', 'Redacta informes, observaciones, estrategias, reportes y planes con los datos que ya capturaste en la plataforma. Revisa y ajusta siempre el texto antes de entregarlo.')
+  + `<div class="ia-grid"><div class="panel">
+      <div class="field"><label>¿Qué documento necesitas?</label><div class="doc-types">${Object.entries(IA_TYPES).map(([k, v]) => `<label title="${esc(v.d)}"><input type="radio" name="iatype" value="${k}" ${UI.iaType === k ? 'checked' : ''}>${esc(v.t)}</label>`).join('')}</div></div>
+      <div class="field"><label for="ia-esc">Escuela</label>${opt(['Toda la zona', ...O.escuelas()], 'ia-esc', UI.iaEsc)}</div>
+      <div class="field"><label for="ia-doc">Docente</label>${opt(['Ninguno en particular', ...O.docentes()], 'ia-doc', UI.iaDoc)}</div>
+      <div class="field"><label for="ia-vis">Visita de referencia</label>${opt(visList, 'ia-vis')}</div>
+      <div class="field"><label for="ia-ses">Sesión de CTE</label>${opt(sesList, 'ia-ses', UI.iaSes)}</div>
+      <div class="field"><label for="ia-extra">Indicaciones adicionales</label><textarea class="input" id="ia-extra" placeholder="Ejemplo: enfócate en lectura de comprensión y propone 3 acciones para noviembre.">${esc(UI.iaExtra || '')}</textarea></div>
+      <div class="actions"><button class="btn primary" id="ia-go">${ic('spark')}Generar con IA</button><button class="btn" id="ia-stop" hidden>Detener</button></div>
+      <p class="muted mini" id="ia-avail"></p>
+    </div>
+    <div class="paper"><div class="paper-h"><b id="ia-title">${esc(IA_TYPES[UI.iaType].t)}</b><div class="actions">
+      <button class="btn sm" data-ia="edit" ${UI.iaOut ? '' : 'disabled'}>${ic('edit')}${UI.iaEdit ? 'Vista previa' : 'Editar'}</button>
+      <button class="btn sm" data-ia="copy" ${UI.iaOut ? '' : 'disabled'}>${ic('copy')}Copiar</button>
+      <button class="btn sm" data-ia="repo" ${UI.iaOut ? '' : 'disabled'}>${ic('folder')}Guardar</button>
+      <button class="btn sm" data-ia="docx" ${UI.iaOut ? '' : 'disabled'}>${ic('down')}Word</button>
+      <button class="btn sm" data-ia="pdf" ${UI.iaOut ? '' : 'disabled'}>${ic('down')}PDF</button></div></div>
+      ${UI.iaEdit ? `<textarea class="input" id="ia-text">${esc(UI.iaOut)}</textarea>` : `<div class="paper-b" id="ia-out">${UI.iaOut ? md(UI.iaOut) : `<div class="ph-empty">${ic('spark')}<p>Elige el tipo de documento y el contexto, y presiona <b>Generar con IA</b>.</p><p class="mini">El asistente usa los datos de tu zona: escuelas, visitas, observaciones, acuerdos, evaluaciones y sesiones de CTE.</p></div>`}</div>`}
+    </div></div>`;
+}
+function md(t) {
+  const lines = t.split('\n'); let h = '', inList = false;
+  const inline = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+  for (const raw of lines) {
+    const l = raw.trimEnd();
+    if (/^\s*[-*•]\s+/.test(l)) { if (!inList) { h += '<ul>'; inList = true; } h += `<li>${inline(l.replace(/^\s*[-*•]\s+/, ''))}</li>`; continue; }
+    if (inList) { h += '</ul>'; inList = false; }
+    if (/^#\s/.test(l) || /^##\s/.test(l)) h += `<h2>${inline(l.replace(/^#+\s/, ''))}</h2>`;
+    else if (/^###\s/.test(l)) h += `<h3>${inline(l.replace(/^#+\s/, ''))}</h3>`;
+    else if (l.trim()) h += `<p>${inline(l)}</p>`;
+  }
+  if (inList) h += '</ul>';
+  return h;
+}
+function iaContext() {
+  const escN = $('#ia-esc').value, docN = $('#ia-doc').value, visI = $('#ia-vis').selectedIndex, sesI = $('#ia-ses').selectedIndex;
+  const z = S.zona;
+  const lines = [`Zona escolar: ${z.nombre} (zona ${z.clave || ''}), nivel ${z.nivel}, estado de ${z.estado}, ciclo escolar ${z.ciclo}. Supervisor(a): ${z.supervisor}.`];
+  const escs = escN === 'Toda la zona' ? S.escuelas : S.escuelas.filter(e => e.nombre === escN);
+  escs.forEach(e => { const s = escuelaStats(e); lines.push(`Escuela ${e.nombre} (CCT ${e.cct}, ${e.turno}, ${e.localidad}): matrícula ${e.matricula}, ${s.docentes} docentes, ${s.real} visitas realizadas, ${s.prog} programadas, ${s.abiertos} acuerdos abiertos (${s.venc} vencidos).`); });
+  const inEsc = r => escN === 'Toda la zona' || r.escuela === escN;
+  const inDoc = r => docN === 'Ninguno en particular' || r.docente === docN;
+  const obs = S.observaciones.filter(o => inEsc(o) && inDoc(o));
+  if (obs.length) lines.push('Observaciones de clase:\n' + obs.map(o => `- ${o.fecha}, ${o.docente}, ${o.campo}. Valoración: ${o.nivel}. Fortalezas: ${o.fortalezas} Áreas de oportunidad: ${o.areas}`).join('\n'));
+  const acu = S.acuerdos.filter(a => escN === 'Toda la zona' || a.escuela === escN || a.escuela === 'Toda la zona');
+  if (acu.length) lines.push('Acuerdos:\n' + acu.map(a => `- ${a.acuerdo} (origen ${a.origen}; responsable ${a.responsable}; límite ${a.limite}; estado ${vencido(a) ? 'Vencido' : a.estado})`).join('\n'));
+  const evs = S.evaluaciones.filter(e => inDoc(e) && (escN === 'Toda la zona' || S.grupos.some(g => g.grupo === e.grupo && g.escuela === escN)));
+  if (evs.length) lines.push('Evaluaciones:\n' + evs.map(e => `- ${e.grupo} (${e.docente}), ${e.campo}, ${e.periodo}: promedio ${e.promedio}, asistencia ${e.asistencia}%, ${e.enRiesgo} alumnos en riesgo`).join('\n'));
+  const pry = S.proyectos.filter(inDoc);
+  if (pry.length && docN !== 'Ninguno en particular') lines.push('Proyectos del docente:\n' + pry.map(p => `- ${p.nombre}, escenario ${p.escenario}, ${p.campo}, ${p.estado}`).join('\n'));
+  if (visI > 0) { const v = S.visitas.filter(v => v.estado === 'Realizada').sort((a, b) => b.fecha.localeCompare(a.fecha))[visI - 1]; lines.push(`Visita de referencia: ${v.fecha}, ${v.escuela}, tipo ${v.tipo}, realizada por ${v.atp}, docente ${v.docente}. Propósito: ${v.proposito}`); }
+  if (sesI > 0) { const s = S.sesiones[sesI - 1]; lines.push(`Sesión de CTE: ${s.sesion}, ${s.fecha}, ${s.escuela}, ${s.asistentes} asistentes. Temas: ${s.temas}. Notas de minuta: ${s.minuta || '(sin notas)'}`); }
+  if (docN !== 'Ninguno en particular') lines.push(`Docente en foco: ${docN}.`);
+  return lines.join('\n\n');
+}
+async function runIA() {
+  if (iaBusy) return;
+  UI.iaType = $('input[name=iatype]:checked').value; UI.iaEsc = $('#ia-esc').value; UI.iaDoc = $('#ia-doc').value; UI.iaSes = $('#ia-ses').value; UI.iaExtra = $('#ia-extra').value;
+  if (!SAMPLE) { $('#ia-avail').textContent = 'El asistente de IA necesita conectarse a un servicio de inteligencia artificial. En esta versión de GitHub todavía no está conectado.'; return; }
+  const tipo = IA_TYPES[UI.iaType];
+  const prompt = `Actúas como asesor técnico pedagógico experto en la Nueva Escuela Mexicana (Plan de Estudio 2022 de la SEP: campos formativos, ejes articuladores, proyectos en escenarios de aula, escuela y comunidad, programa analítico, evaluación formativa y Programa Escolar de Mejora Continua).
+
+Redacta un documento tipo "${tipo.t}" (${tipo.d}) en español de México, con tono institucional, claro y respetuoso, listo para que la supervisión escolar lo revise y entregue.
+
+Reglas:
+- Usa SOLO los datos proporcionados. Si falta un dato necesario, deja un espacio entre corchetes, por ejemplo [nombre del alumno], y no lo inventes.
+- Formato: títulos con "## ", subtítulos con "### ", viñetas con "- " y negritas con **texto**. No uses tablas.
+- Incluye al inicio un encabezado con zona escolar, escuela, fecha y nombre de quien elabora (${SESSION.nombre}, ${ROLES[ROLE]}).
+- Cierra con un apartado de firmas o de seguimiento cuando corresponda.
+- Extensión: entre 350 y 700 palabras.
+
+Datos de la plataforma:
+${iaContext()}
+${UI.iaExtra ? '\nIndicaciones adicionales del usuario: ' + UI.iaExtra : ''}`;
+  iaBusy = true; iaCtl = new AbortController();
+  UI.iaEdit = false; $('#ia-title').textContent = tipo.t;
+  const out = $('#ia-out') || (() => { render(); return $('#ia-out'); })();
+  out.innerHTML = '<div class="thinking"><i></i>Redactando con la información de tu zona…</div>';
+  $('#ia-go').disabled = true; $('#ia-stop').hidden = false;
+  try {
+    const r = await SAMPLE(prompt, {signal:iaCtl.signal, cache:false, onText:({text}) => { const o = $('#ia-out'); if (o) o.innerHTML = md(text); }});
+    UI.iaOut = r.text;
+    log(`Generó con IA: ${tipo.t}`); save();
+    if (r.truncated) toast('El texto quedó incompleto; pide un documento más breve.');
+  } catch (e) {
+    UI.iaOut = e.text || UI.iaOut;
+    const msg = {not_granted:'No se autorizó el uso de Claude en esta página.', rate_limited:'Se alcanzó el límite de uso. Intenta más tarde.', refused:'La solicitud no pudo procesarse; ajusta las indicaciones.', sampling_disabled:'La IA no está disponible para esta cuenta.', session_expired:'Tu sesión de Claude expiró; vuelve a iniciar sesión.'}[e.code];
+    if (e.code !== 'cancelled') toast(msg || 'No se pudo generar el documento. Intenta de nuevo.');
+  } finally { iaBusy = false; render(); }
+}
+function iaDocTitle() { return `${IA_TYPES[UI.iaType].t} – ${UI.iaEsc && UI.iaEsc !== 'Toda la zona' ? UI.iaEsc : S.zona.nombre}`; }
+
+/* ================= Repositorio ================= */
+const FOLDERS = ['Todas','Normatividad','Visitas','CTE','Planeaciones','Evidencias','Informes'];
+const ftype = name => { const e = (name.split('.').pop() || '').toLowerCase(); if (e === 'pdf') return 'pdf'; if (['doc','docx','odt','rtf'].includes(e)) return 'doc'; if (['xls','xlsx','csv','ods'].includes(e)) return 'xls'; if (['jpg','jpeg','png','gif','webp','heic'].includes(e)) return 'img'; if (['mp4','mov','webm','avi','m4v'].includes(e)) return 'vid'; return 'otro'; };
+const FTL = {pdf:'PDF', doc:'DOC', xls:'XLS', img:'IMG', vid:'VID', txt:'IA', otro:'ARCH'};
+const fsize = b => !b ? '' : b < 1024 * 1024 ? Math.round(b / 1024) + ' KB' : (b / 1048576).toFixed(1) + ' MB';
+function repoListHTML(list) {
+  if (!list.length) return '<div class="empty">No hay archivos en esta carpeta.</div>';
+  const w = ROLE === 'supervisor' || ROLE === 'atp' || ROLE === 'director';
+  return `<div class="list">${list.slice().sort((a, b) => (b.fecha || '').localeCompare(a.fecha || '')).map(f => `<div class="li"><span class="ftype ft-${f.tipo}">${FTL[f.tipo]}</span><div style="min-width:0"><div class="li-title" style="overflow-wrap:anywhere">${esc(f.nombre)}</div><div class="li-sub num">${esc(f.carpeta)} · ${fmtD(f.fecha)} · ${esc(f.autor)}${f.size ? ' · ' + fsize(f.size) : ''}${f.ejemplo ? ' · archivo de ejemplo sin contenido' : (!f.contenido && !FILES.has(f.id) ? ' · contenido no disponible en esta sesión' : '')}</div></div><div style="display:flex;gap:4px">${(f.contenido || FILES.has(f.id)) ? `<button class="btn ghost sm" data-act="open-file" data-id="${f.id}" aria-label="Abrir">${ic('eye')}</button><button class="btn ghost sm" data-act="dl-file" data-id="${f.id}" aria-label="Descargar">${ic('down')}</button>` : ''}${w ? `<button class="btn ghost sm danger" data-act="del-file" data-id="${f.id}" aria-label="Eliminar">${ic('trash')}</button>` : ''}</div></div>`).join('')}</div>`;
+}
+function repoPanelHTML(folder) {
+  const list = folder === 'Todas' ? S.repositorio : S.repositorio.filter(r => r.carpeta === folder);
+  return `<div class="panel"><div class="drop" id="drop" data-folder="${esc(folder === 'Todas' ? 'Normatividad' : folder)}">${ic('up')}<b style="color:var(--fg)">Arrastra archivos aquí</b><span class="mini">PDF, Word, Excel, fotografías y videos${folder !== 'Todas' ? ` · se guardan en la carpeta ${esc(folder)}` : ''}</span><label class="btn sm" for="file-in">Elegir archivos</label><input type="file" id="file-in" multiple hidden accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx,image/*,video/*"></div>${repoListHTML(list)}</div>`;
+}
+function viewRepo() {
+  const n = f => f === 'Todas' ? S.repositorio.length : S.repositorio.filter(r => r.carpeta === f).length;
+  return pageHead('Repositorio', 'Documentos de la zona organizados por carpeta: normatividad, visitas, CTE, planeaciones, evidencias e informes.')
+  + `<div class="folders">${FOLDERS.map(f => `<button class="folder" aria-pressed="${UI.folder === f}" data-folder-sel="${esc(f)}">${esc(f)} <span class="num" style="opacity:.75">${n(f)}</span></button>`).join('')}</div>`
+  + repoPanelHTML(UI.folder);
+}
+function addFiles(files, folder) {
+  [...files].forEach(file => {
+    const id = uid();
+    FILES.set(id, file);
+    S.repositorio.push({id, nombre:file.name, carpeta:folder, tipo:ftype(file.name), size:file.size, fecha:isoToday(), autor:SESSION.nombre});
+  });
+  log(`Subió ${files.length} archivo(s) a ${folder}`); save(); toast(`${files.length} archivo(s) agregados a ${folder}`); render();
+}
+function openFile(id) {
+  const f = S.repositorio.find(r => r.id === id);
+  let body = '';
+  if (f.contenido) body = `<div class="paper-b">${md(f.contenido)}</div>`;
+  else {
+    const blob = FILES.get(id); const url = URL.createObjectURL(blob);
+    if (f.tipo === 'img') body = `<img src="${url}" alt="${esc(f.nombre)}" style="width:100%;border-radius:8px">`;
+    else if (f.tipo === 'vid') body = `<video src="${url}" controls style="width:100%;border-radius:8px"></video>`;
+    else body = `<div class="empty">${ic('folder')}La vista previa de este tipo de archivo no está disponible. Usa Descargar para abrirlo.</div>`;
+  }
+  modal(`<div class="modal-h"><h3 style="overflow-wrap:anywhere">${esc(f.nombre)}</h3><button class="icon-btn" data-act="close" aria-label="Cerrar">${ic('x')}</button></div><div class="modal-b">${body}</div><div class="modal-f">${f.contenido ? `<button class="btn" data-act="dl-file-pdf" data-id="${id}">${ic('down')}PDF</button>` : ''}<button class="btn primary" data-act="dl-file" data-id="${id}">${ic('down')}${f.contenido ? 'Word' : 'Descargar'}</button></div>`, 'wide');
+}
+
+/* ================= Exportación ================= */
+let DL = null;
+async function saveFile(filename, data) {
+  if (!DL) {
+    const blob = data instanceof Blob ? data : new Blob([data]);
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    toast('Descarga iniciada'); log(`Descargó ${filename}`); save(); return;
+  }
+  try { await DL.save({filename, data}); toast('Archivo listo'); log(`Descargó ${filename}`); save(); }
+  catch (e) { if (e.code !== 'declined') toast(e.code === 'rate_limited' ? 'Espera un momento y vuelve a intentar.' : 'No se pudo descargar el archivo.'); }
+}
+const xmlEsc = s => String(s ?? '').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+function wRun(t, {b = false, sz = 22, color = null, font = 'Arial'} = {}) { return `<w:r><w:rPr><w:rFonts w:ascii="${font}" w:hAnsi="${font}" w:cs="${font}"/>${b ? '<w:b/>' : ''}${color ? `<w:color w:val="${color}"/>` : ''}<w:sz w:val="${sz}"/></w:rPr><w:t xml:space="preserve">${xmlEsc(t)}</w:t></w:r>`; }
+function wPara(runs, {after = 120, ind = 0, jc = null} = {}) { return `<w:p><w:pPr><w:spacing w:after="${after}"/>${ind ? `<w:ind w:left="${ind}" w:hanging="240"/>` : ''}${jc ? `<w:jc w:val="${jc}"/>` : ''}</w:pPr>${runs}</w:p>`; }
+function inlineRuns(t, opts = {}) { return t.split(/(\*\*.+?\*\*)/g).filter(Boolean).map(p => p.startsWith('**') ? wRun(p.slice(2, -2), {...opts, b:true}) : wRun(p, opts)).join(''); }
+async function makeDocx(title, text, table) {
+  let body = wPara(wRun(`${S.zona.nombre} · ${S.zona.nivel} · ${S.zona.estado}`, {sz:18, color:'BC955C', b:true}), {after:60});
+  body += wPara(wRun(title, {b:true, sz:32, color:'691C32'}), {after:200});
+  if (text) text.split('\n').forEach(l => {
+    const s = l.trim(); if (!s) return;
+    if (/^#{1,2}\s/.test(s)) body += wPara(wRun(s.replace(/^#+\s/, ''), {b:true, sz:28, color:'691C32'}), {after:120});
+    else if (/^###\s/.test(s)) body += wPara(wRun(s.replace(/^#+\s/, ''), {b:true, sz:24}), {after:80});
+    else if (/^[-*•]\s/.test(s)) body += wPara(wRun('•  ') + inlineRuns(s.replace(/^[-*•]\s/, '')), {ind:360, after:60});
+    else body += wPara(inlineRuns(s));
+  });
+  if (table) {
+    const n = table.head.length, cw = Math.floor(9972 / n);
+    const brd = ['top','left','bottom','right','insideH','insideV'].map(b => `<w:${b} w:val="single" w:sz="4" w:space="0" w:color="BFB5AA"/>`).join('');
+    const tc = (t, head) => `<w:tc><w:tcPr><w:tcW w:w="${cw}" w:type="dxa"/>${head ? '<w:shd w:val="clear" w:color="auto" w:fill="691C32"/>' : ''}</w:tcPr>${wPara(wRun(String(t ?? ''), {sz:18, b:head, color:head ? 'FFFFFF' : null}), {after:0})}</w:tc>`;
+    body += `<w:tbl><w:tblPr><w:tblW w:w="5000" w:type="pct"/><w:tblBorders>${brd}</w:tblBorders><w:tblCellMar><w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>${table.head.map(() => `<w:gridCol w:w="${cw}"/>`).join('')}</w:tblGrid><w:tr>${table.head.map(h => tc(h, true)).join('')}</w:tr>${table.rows.map(r => `<w:tr>${r.map(c => tc(c, false)).join('')}</w:tr>`).join('')}</w:tbl>`;
+    body += wPara(wRun(`Generado el ${fmtD(isoToday())} en Zona Escolar Inteligente.`, {sz:16, color:'6C6266'}), {after:0});
+  }
+  const doc = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body}<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>`;
+  const zip = new JSZip();
+  zip.file('[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>');
+  zip.file('_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>');
+  zip.file('word/document.xml', doc);
+  return zip.generateAsync({type:'blob'});
+}
+function pdfBase(title) {
+  const {jsPDF} = window.jspdf; const doc = new jsPDF({unit:'pt', format:'letter'});
+  const W = doc.internal.pageSize.getWidth();
+  doc.setFillColor(105, 28, 50); doc.rect(0, 0, W, 64, 'F');
+  doc.setFillColor(188, 149, 92); doc.rect(0, 64, W, 4, 'F');
+  doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
+  doc.text(`${S.zona.nombre} · ${S.zona.nivel} · ${S.zona.estado}`.toUpperCase(), 40, 28);
+  doc.setFontSize(15); doc.text(title, 40, 48);
+  doc.setTextColor(34, 27, 30); doc.setFont('helvetica', 'normal');
+  return doc;
+}
+function pdfText(title, text) {
+  const doc = pdfBase(title); const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
+  let y = 96;
+  const put = (t, size, bold, color = [34, 27, 30], indent = 0, gap = 4) => {
+    doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setFontSize(size); doc.setTextColor(...color);
+    doc.splitTextToSize(t, W - 80 - indent).forEach(ln => { if (y > H - 50) { doc.addPage(); y = 50; } doc.text(ln, 40 + indent, y); y += size * 1.35; });
+    y += gap;
+  };
+  text.split('\n').forEach(l => {
+    const s = l.trim(); if (!s) return; const clean = s.replace(/\*\*/g, '');
+    if (/^#{1,2}\s/.test(s)) { y += 6; put(clean.replace(/^#+\s/, ''), 13, true, [105, 28, 50]); }
+    else if (/^###\s/.test(s)) put(clean.replace(/^#+\s/, ''), 11.5, true);
+    else if (/^[-*•]\s/.test(s)) put('•  ' + clean.replace(/^[-*•]\s/, ''), 10.5, false, [34, 27, 30], 10, 2);
+    else put(clean, 10.5, false);
+  });
+  return doc.output('blob');
+}
+
+/* ================= Reportes ================= */
+const REPORTS = {
+  visitas:{t:'Avance de visitas por escuela', d:'Programadas, realizadas y canceladas', build() {
+    const rows = S.escuelas.map(e => { const s = escuelaStats(e); return [e.nombre, e.cct, s.prog, s.real, s.canc, pct(s.real, s.real + s.prog) + '%']; });
+    return {head:['Escuela','CCT','Programadas','Realizadas','Canceladas','Avance'], rows, chart:hbars(S.escuelas.map(e => { const s = escuelaStats(e); return {label:e.nombre, values:[s.real, s.prog]}; }), {stack:[{name:'Realizadas', color:'var(--accent)'}, {name:'Programadas', color:'var(--oro)'}]})}; }},
+  acuerdos:{t:'Seguimiento de acuerdos', d:'Estado y vencimientos', build() {
+    const rows = S.acuerdos.map(a => [a.acuerdo, a.origen, a.escuela, a.responsable, fmtD(a.limite), vencido(a) ? 'Vencido' : a.estado]);
+    const ac = S.acuerdos.filter(a => a.estado === 'Cumplido').length;
+    return {head:['Acuerdo','Origen','Escuela','Responsable','Límite','Estado'], rows, chart:ring([{name:'Cumplidos', v:ac, color:'var(--ok)'}, {name:'Abiertos', v:S.acuerdos.filter(a => a.estado !== 'Cumplido' && !vencido(a)).length, color:'var(--oro)'}, {name:'Vencidos', v:S.acuerdos.filter(vencido).length, color:'var(--bad)'}], pct(ac, S.acuerdos.length) + '%', 'cumplidos')}; }},
+  indicadores:{t:'Indicadores por escuela', d:'Matrícula, personal, visitas y semáforo', build() {
+    const rows = S.escuelas.map(e => { const s = escuelaStats(e); return [e.nombre, e.cct, e.matricula, s.docentes, s.grupos, s.real, s.abiertos, SEMTXT[s.sem]]; });
+    return {head:['Escuela','CCT','Matrícula','Docentes','Grupos','Visitas','Acuerdos abiertos','Estado'], rows, chart:hbars(S.escuelas.map(e => ({label:e.nombre, values:[Number(e.matricula) || 0]})), {stack:[{name:'Matrícula', color:'var(--accent)'}]})}; }},
+  personal:{t:'Directorio de personal', d:'Personal por función y adscripción', build() {
+    const rows = S.personal.map(p => [p.nombre, p.rol, p.escuela, p.funcion, p.correo]);
+    const roles = [...new Set(S.personal.map(p => p.rol))];
+    return {head:['Nombre','Función','Adscripción','Grado/especialidad','Correo'], rows, chart:hbars(roles.map(r => ({label:r, values:[S.personal.filter(p => p.rol === r).length]})))}; }},
+  observaciones:{t:'Observaciones pedagógicas', d:'Valoraciones por docente y campo', build() {
+    const rows = S.observaciones.map(o => [fmtD(o.fecha), o.escuela, o.docente, o.campo, o.nivel]);
+    const nv = ['Destacado','Satisfactorio','En desarrollo','Requiere apoyo'];
+    return {head:['Fecha','Escuela','Docente','Campo formativo','Valoración'], rows, chart:hbars(nv.map(n => ({label:n, values:[S.observaciones.filter(o => o.nivel === n).length]})))}; }},
+  academico:{t:'Seguimiento académico', d:'Promedios, asistencia y riesgo', build() {
+    const rows = S.evaluaciones.map(e => [e.grupo, e.docente, e.campo, e.periodo, e.promedio, e.asistencia + '%', e.enRiesgo]);
+    return {head:['Grupo','Docente','Campo','Periodo','Promedio','Asistencia','En riesgo'], rows, chart:hbars(S.evaluaciones.map(e => ({label:e.grupo, values:[Number(e.promedio) || 0], display:e.promedio})), {max:10})}; }},
+  cte:{t:'Concentrado de CTE', d:'Sesiones, asistencia y temas', build() {
+    const rows = S.sesiones.map(s => [fmtD(s.fecha), s.sesion, s.escuela, s.asistentes, s.temas]);
+    return {head:['Fecha','Sesión','Escuela','Asistentes','Temas'], rows, chart:hbars(S.sesiones.filter(s => s.asistentes).map(s => ({label:s.sesion, values:[Number(s.asistentes)]})), {stack:[{name:'Asistentes', color:'var(--verde)'}]})}; }}
+};
+function viewReportes() {
+  const r = REPORTS[UI.rep]; const data = r.build();
+  return pageHead('Reportes', 'Reportes automáticos con la información capturada. Descárgalos en PDF, Excel o Word.')
+  + `<div class="rep-grid"><div class="rep-list">${Object.entries(REPORTS).map(([k, v]) => `<button class="rep-item" aria-pressed="${UI.rep === k}" data-rep="${k}"><b>${esc(v.t)}</b><span>${esc(v.d)}</span></button>`).join('')}</div>
+  <div class="panel"><div class="panel-h"><div><h3>${esc(r.t)}</h3><p class="muted mini">${esc(S.zona.nombre)} · corte al ${fmtD(isoToday())} · ${data.rows.length} registros</p></div><div class="actions"><button class="btn sm" data-exp="pdf">${ic('down')}PDF</button><button class="btn sm" data-exp="xlsx">${ic('down')}Excel</button><button class="btn sm" data-exp="docx">${ic('down')}Word</button></div></div>
+    ${data.rows.length ? data.chart : ''}
+    <div class="tbl-wrap"><table><thead><tr>${data.head.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${data.rows.map(row => `<tr>${row.map((c, i) => `<td class="${typeof c === 'number' ? 'num' : ''} ${i === 0 ? 'clip' : ''}">${CHIP[c] !== undefined ? chip(c) : esc(c ?? '—')}</td>`).join('')}</tr>`).join('') || `<tr><td colspan="${data.head.length}"><div class="empty">Aún no hay datos para este reporte.</div></td></tr>`}</tbody></table></div>
+  </div></div>`;
+}
+async function exportReport(kind) {
+  const r = REPORTS[UI.rep]; const d = r.build(); const base = `${r.t} - ${S.zona.nombre}`.replace(/[\\/:*?"<>|]/g, '');
+  if (kind === 'xlsx') {
+    const ws = XLSX.utils.aoa_to_sheet([[r.t], [`${S.zona.nombre} · corte al ${fmtD(isoToday())}`], [], d.head, ...d.rows]);
+    ws['!cols'] = d.head.map((h, i) => ({wch:Math.min(50, Math.max(h.length, ...d.rows.map(x => String(x[i] ?? '').length)) + 2)}));
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Reporte');
+    const buf = XLSX.write(wb, {type:'array', bookType:'xlsx'});
+    return saveFile(base + '.xlsx', new Blob([buf]));
+  }
+  if (kind === 'docx') return saveFile(base + '.docx', await makeDocx(r.t, `Corte al ${fmtD(isoToday())}. Elaboró: ${SESSION.nombre} (${ROLES[ROLE]}).`, d));
+  const doc = pdfBase(r.t);
+  doc.setFontSize(9.5); doc.setTextColor(108, 98, 102); doc.text(`Corte al ${fmtD(isoToday())} · Elaboró: ${SESSION.nombre} (${ROLES[ROLE]})`, 40, 90);
+  doc.autoTable({head:[d.head], body:d.rows.map(r => r.map(c => String(c ?? ''))), startY:102, styles:{fontSize:8.5, cellPadding:5}, headStyles:{fillColor:[105, 28, 50], textColor:255}, alternateRowStyles:{fillColor:[245, 242, 238]}, margin:{left:40, right:40}});
+  return saveFile(base + '.pdf', doc.output('blob'));
+}
+
+/* ================= Seguridad ================= */
+const mask = k => k ? k.slice(0, 8) + '-••••-••••-' + k.slice(-4) : '—';
+async function deriveKey(pass, salt) {
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2', salt, iterations:150000, hash:'SHA-256'}, base, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
+}
+async function encryptBackup(pass) {
+  const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await deriveKey(pass, salt);
+  const ct = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, new TextEncoder().encode(JSON.stringify(S)));
+  return JSON.stringify({formato:'ZEI-respaldo', version:1, cifrado:'AES-256-GCM', kdf:'PBKDF2-SHA256', iteraciones:150000, creado:new Date().toISOString(), zona:S.zona.nombre, salt:b64(salt), iv:b64(iv), datos:b64(ct)}, null, 1);
+}
+async function decryptBackup(txt, pass) {
+  const o = JSON.parse(txt);
+  const key = await deriveKey(pass, unb64(o.salt));
+  const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv:unb64(o.iv)}, key, unb64(o.datos));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+function viewSeguridad() {
+  const t = curTab('seguridad', 'roles');
+  let body = '';
+  if (t === 'roles') {
+    const rs = Object.keys(ROLES);
+    body = `<div class="panel"><div class="panel-h"><h3>Acceso a módulos por rol</h3></div><div class="tbl-wrap"><table class="matrix"><thead><tr><th>Módulo</th>${rs.map(r => `<th>${ROLES[r]}</th>`).join('')}</tr></thead><tbody>${VIEWS.map(v => `<tr><td>${esc(v.label)}</td>${rs.map(r => ACCESS[r].includes(v.id) ? `<td class="yes">Sí</td>` : `<td class="no">—</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>
+    <div class="panel"><div class="panel-h"><h3>Permisos de captura</h3><p class="muted mini">Quién puede agregar, editar o eliminar cada tipo de registro.</p></div><div class="tbl-wrap"><table class="matrix"><thead><tr><th>Registro</th>${rs.map(r => `<th>${ROLES[r]}</th>`).join('')}</tr></thead><tbody>${Object.entries(ENT).map(([k, e]) => `<tr><td>${esc(e.label)}</td>${rs.map(r => (WRITE[r] === '*' || WRITE[r].includes(k)) ? `<td class="yes">Edita</td>` : `<td class="no">Consulta</td>`).join('')}</tr>`).join('')}</tbody></table></div><p class="muted mini">Usa el selector «Ver como» de la barra superior para probar la plataforma con cada rol.</p></div>`;
+  }
+  if (t === 'licencia') {
+    const l = S.licencia || {};
+    body = `<div class="cols even"><div class="panel"><div class="panel-h"><h3>Licencia de la instancia</h3>${chip(l.key ? 'Cumplido' : 'Pendiente').replace('Cumplido', 'Activa').replace('Pendiente', 'Sin activar')}</div>
+      <div class="grid2"><div class="field"><label>KEY de activación</label><div class="keybox">${esc(mask(l.key))}</div></div><div class="field"><label>Plan</label><div>${esc(l.plan || '—')}</div></div><div class="field"><label>Activada el</label><div class="num">${fmtD(l.activada)}</div></div><div class="field"><label>Vigencia</label><div class="num">${fmtD(l.vigencia)}</div></div><div class="field"><label>Titular</label><div>${esc(SESSION.nombre)} · ${esc(SESSION.correo)}</div></div><div class="field"><label>Instancia</label><div>${esc(S.zona.nombre)}</div></div></div></div>
+      <div class="panel"><div class="panel-h"><h3>Cambiar licencia</h3></div><form class="form" id="relic"><div class="field"><label for="relic-key">Nueva KEY</label><input class="input keybox" id="relic-key" placeholder="ZEI-XXXX-XXXX-XXXX-XXXX" required></div><div class="err" id="relic-err"></div><div class="actions"><button class="btn primary" type="submit">${ic('key')}Activar</button><button class="btn" type="button" data-act="gen-key">Generar KEY de prueba</button></div></form>
+      <p class="note">Cada KEY abre una instancia privada para una zona escolar. En la versión en producción la KEY se valida en el servidor y se vincula a la cuenta del titular.</p></div></div>`;
+  }
+  if (t === 'respaldos') {
+    const snaps = store.get('zei-snaps', []);
+    body = `<div class="cols even"><div class="panel"><div class="panel-h"><h3>Copias de seguridad automáticas</h3><button class="btn sm" data-act="snap">${ic('refresh')}Crear respaldo ahora</button></div>
+      <p class="muted mini">La plataforma guarda un punto de restauración cada vez que capturas información (máximo uno cada 2 minutos) y conserva los 5 más recientes.</p>
+      <div class="list">${snaps.map((s, i) => `<div class="li"><span class="ftype ft-txt">${i + 1}</span><div><div class="li-title num">${new Date(s.t).toLocaleString('es-MX', {dateStyle:'medium', timeStyle:'short'})}</div><div class="li-sub num">${s.data.escuelas.length} escuelas · ${s.data.personal.length} personas · ${s.data.visitas.length} visitas · ${s.data.acuerdos.length} acuerdos</div></div><button class="btn sm" data-act="restore" data-i="${i}">Restaurar</button></div>`).join('') || '<div class="empty">Aún no hay respaldos. Se crean al capturar información.</div>'}</div></div>
+      <div class="panel"><div class="panel-h"><h3>Respaldo cifrado en archivo</h3></div>
+        <form class="form" id="bk-exp"><p class="muted mini">Descarga toda la información de la zona cifrada con AES-256. Sólo se puede abrir con la contraseña que definas.</p><div class="grid2"><div class="field"><label for="bk-p1">Contraseña del respaldo</label><input class="input" type="password" id="bk-p1" minlength="8" required></div><div class="field"><label for="bk-p2">Confirmar contraseña</label><input class="input" type="password" id="bk-p2" minlength="8" required></div></div><div class="err" id="bk-err"></div><button class="btn primary" type="submit">${ic('lock')}Descargar respaldo cifrado</button></form>
+        <div class="divider">restaurar desde archivo</div>
+        <form class="form" id="bk-imp"><div class="field"><label for="bk-file">Archivo de respaldo (.json)</label><input class="input" type="file" id="bk-file" accept=".json,application/json" required></div><div class="field"><label for="bk-p3">Contraseña</label><input class="input" type="password" id="bk-p3" required></div><div class="err" id="bk-err2"></div><button class="btn" type="submit">${ic('up')}Restaurar respaldo</button></form>
+      </div></div>`;
+  }
+  if (t === 'cifrado') body = `<div class="panel"><div class="panel-h"><h3>Protección de la información</h3></div><div class="grid2">
+    <div class="note"><b>Contraseñas</b><br>Se guardan como huella SHA-256 con sal, nunca en texto claro.</div>
+    <div class="note"><b>Respaldos</b><br>Cifrado AES-256-GCM con llave derivada por PBKDF2 (150 000 iteraciones).</div>
+    <div class="note"><b>Aislamiento por licencia</b><br>Cada KEY crea una instancia separada; ninguna zona ve datos de otra.</div>
+    <div class="note"><b>Roles y permisos</b><br>Cada rol ve sólo sus módulos y edita sólo los registros que le corresponden.</div>
+    <div class="note"><b>Bitácora</b><br>Se registra quién hizo cada cambio y cuándo.</div>
+    <div class="note"><b>En producción</b><br>Conexión HTTPS, base de datos cifrada en reposo, respaldos diarios en servidor y verificación en dos pasos.</div></div>
+    <p class="muted mini">Prototipo: la información de esta demostración se guarda sólo en este navegador.</p></div>`;
+  if (t === 'bitacora') body = `<div class="tbl-wrap"><table><thead><tr><th>Fecha y hora</th><th>Usuario</th><th>Rol</th><th>Acción</th></tr></thead><tbody>${S.bitacora.map(b => `<tr><td class="num" style="white-space:nowrap">${new Date(b.t).toLocaleString('es-MX', {dateStyle:'short', timeStyle:'short'})}</td><td>${esc(b.usuario)}</td><td>${esc(b.rol)}</td><td>${esc(b.accion)}</td></tr>`).join('') || '<tr><td colspan="4"><div class="empty">Sin movimientos registrados.</div></td></tr>'}</tbody></table></div>`;
+  return pageHead('Seguridad', 'Roles y permisos, licencia, copias de seguridad, cifrado y bitácora de cambios.')
+  + subtabs('seguridad', [['roles','Roles y permisos'],['licencia','Licencia'],['respaldos','Copias de seguridad'],['cifrado','Cifrado'],['bitacora','Bitácora']]) + body;
+}
+
+/* ================= KEY de activación ================= */
+const KA = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+function keyCheck(g) { let s = 0; for (let i = 0; i < g.length; i++) s = (s * 31 + KA.indexOf(g[i]) * (i + 7)) % 1048576; let o = ''; for (let i = 0; i < 4; i++) { o += KA[s % 32]; s = Math.floor(s / 32); } return o; }
+function genKey() { let g = ''; for (let i = 0; i < 12; i++) g += KA[Math.floor(Math.random() * 32)]; return `ZEI-${g.slice(0, 4)}-${g.slice(4, 8)}-${g.slice(8)}-${keyCheck(g)}`; }
+function validKey(k) {
+  k = k.trim().toUpperCase();
+  if (k === 'ZEI-DEMO-0048-PUEB-LA26') return k;
+  const m = k.match(/^ZEI-([A-Z2-9]{4})-([A-Z2-9]{4})-([A-Z2-9]{4})-([A-Z2-9]{4})$/);
+  if (!m) return null;
+  return keyCheck(m[1] + m[2] + m[3]) === m[4] ? k : null;
+}
+
+/* ================= Portada y acceso ================= */
+function viewLanding() {
+  const t = UI.authTab;
+  const tabs = `<div class="tabs" role="tablist"><button class="tab" role="tab" aria-selected="${t === 'login'}" data-auth="login">Iniciar sesión</button><button class="tab" role="tab" aria-selected="${t === 'registro'}" data-auth="registro">Registrarse</button></div>`;
+  let form = '';
+  if (t === 'login') form = `<form class="form" id="f-login"><div class="field"><label for="l-mail">Correo electrónico</label><input class="input" id="l-mail" type="email" autocomplete="email" required></div><div class="field"><label for="l-pass">Contraseña</label><input class="input" id="l-pass" type="password" autocomplete="current-password" required></div><div class="err" id="l-err"></div><button class="btn primary" type="submit" style="justify-content:center">Entrar</button><a style="font-size:12.5px;cursor:pointer;font-weight:600" data-auth="recuperar">¿Olvidaste tu contraseña?</a></form>`;
+  if (t === 'registro') form = `<form class="form" id="f-reg"><div class="field"><label for="r-nom">Nombre completo</label><input class="input" id="r-nom" required autocomplete="name"></div><div class="field"><label for="r-mail">Correo electrónico</label><input class="input" id="r-mail" type="email" required autocomplete="email"></div><div class="grid2"><div class="field"><label for="r-p1">Contraseña</label><input class="input" id="r-p1" type="password" minlength="8" required autocomplete="new-password"></div><div class="field"><label for="r-p2">Confirmar</label><input class="input" id="r-p2" type="password" minlength="8" required autocomplete="new-password"></div></div><div class="err" id="r-err"></div><button class="btn primary" type="submit" style="justify-content:center">Crear cuenta</button><p class="muted mini">Después de registrarte activarás tu instancia con la KEY de tu licencia.</p></form>`;
+  if (t === 'recuperar') form = `<form class="form" id="f-rec"><p class="muted">Escribe el correo con el que te registraste y define una contraseña nueva.</p><div class="field"><label for="rc-mail">Correo electrónico</label><input class="input" id="rc-mail" type="email" required></div><div class="field"><label for="rc-key">KEY de tu licencia (para verificar tu identidad)</label><input class="input keybox" id="rc-key" placeholder="ZEI-XXXX-XXXX-XXXX-XXXX" required></div><div class="field"><label for="rc-p">Contraseña nueva</label><input class="input" id="rc-p" type="password" minlength="8" required></div><div class="err" id="rc-err"></div><button class="btn primary" type="submit" style="justify-content:center">Restablecer contraseña</button><a style="font-size:12.5px;cursor:pointer;font-weight:600" data-auth="login">Volver a iniciar sesión</a><p class="note">En la versión en producción se enviará un enlace de recuperación a tu correo.</p></form>`;
+  return `<div class="landing"><section class="hero">
+    <div class="brand"><div class="brand-mark">ZEI</div><div><b>Zona Escolar Inteligente</b><span>Gestión educativa para la supervisión escolar</span></div></div>
+    <div class="strip"></div>
+    <h1>Toda tu zona escolar, en un solo lugar.</h1>
+    <p class="lead">Visitas de acompañamiento, Consejo Técnico, planeaciones, evidencias y reportes para la SEP, con un asistente de inteligencia artificial que redacta con los datos que tú capturas.</p>
+    <div class="roles-line"><span>Supervisores</span><span>ATP</span><span>Directores</span><span>Docentes</span></div>
+    <div class="mods">
+      <div><b>Supervisión</b>Indicadores por escuela, avance de visitas y alertas automáticas.</div>
+      <div><b>Acompañamiento</b>Agenda, observaciones de clase y seguimiento docente.</div>
+      <div><b>Consejo Técnico</b>Minutas, acuerdos y su cumplimiento.</div>
+      <div><b>Inteligencia artificial</b>Informes, planes de intervención y actividades NEM.</div>
+    </div>
+  </section>
+  <section class="auth"><div class="auth-card">
+    ${t === 'recuperar' ? '<h2 style="font-family:var(--f-display);font-size:22px">Recuperar contraseña</h2>' : tabs}
+    ${form}
+    <div class="divider">o</div>
+    <button class="btn" data-act="demo" style="justify-content:center">${ic('eye')}Explorar la demostración (Zona 048)</button>
+    <p class="muted mini">Prototipo: las cuentas y la información se guardan sólo en este navegador.</p>
+  </div></section></div>`;
+}
+function viewActivate() {
+  return `<div class="wizard"><div class="wiz-card"><div class="brand"><div class="brand-mark">ZEI</div><div><b>Zona Escolar Inteligente</b><span class="muted">${esc(SESSION.correo)}</span></div></div>
+    <form class="wiz-body" id="f-key"><div class="eyebrow">Activación de licencia</div><h2>Activa tu instancia privada</h2>
+    <p class="muted">Escribe la KEY de activación que recibiste al adquirir tu licencia. Cada KEY crea una plataforma independiente para una zona escolar.</p>
+    <div class="field"><label for="k-in">KEY de activación</label><input class="input keybox" id="k-in" placeholder="ZEI-XXXX-XXXX-XXXX-XXXX" required autocomplete="off" style="font-size:16px"></div>
+    <div class="err" id="k-err"></div>
+    <div class="wiz-foot"><button class="btn" type="button" data-act="gen-key">${ic('key')}Generar KEY de prueba</button><div class="actions"><button class="btn ghost" type="button" data-act="logout">Salir</button><button class="btn primary" type="submit">Activar</button></div></div></form>
+  </div></div>`;
+}
+const WIZ = [
+  {t:'¿Cómo se llama tu zona escolar?', d:'Este nombre aparecerá en todos los reportes e informes.', f:() => `<div class="grid2"><div class="field span2"><label for="w-nombre">Nombre de la zona escolar</label><input class="input" id="w-nombre" placeholder="Zona Escolar 048" value="${esc(UI.wiz.nombre || '')}" required></div><div class="field"><label for="w-clave">Número de zona</label><input class="input" id="w-clave" placeholder="048" value="${esc(UI.wiz.clave || '')}"></div><div class="field"><label for="w-sector">Sector (opcional)</label><input class="input" id="w-sector" placeholder="Sector 07" value="${esc(UI.wiz.sector || '')}"></div></div>`},
+  {t:'Nivel educativo', d:'Elige el nivel que atiende tu zona.', f:() => `<div class="choice">${NIVELES.map(n => `<label><input type="radio" name="w-nivel" value="${esc(n)}" ${UI.wiz.nivel === n ? 'checked' : ''}>${esc(n)}</label>`).join('')}</div>`},
+  {t:'Estado', d:'Entidad federativa donde se ubica la zona.', f:() => `<div class="grid2"><div class="field"><label for="w-estado">Estado</label><select class="input" id="w-estado">${ESTADOS.map(e => `<option ${e === (UI.wiz.estado || 'Puebla') ? 'selected' : ''}>${e}</option>`).join('')}</select></div><div class="field"><label for="w-municipio">Municipio sede</label><input class="input" id="w-municipio" value="${esc(UI.wiz.municipio || '')}"></div></div>`},
+  {t:'Número de escuelas', d:'¿Cuántas escuelas integran la zona? Podrás registrarlas después.', f:() => `<div class="field" style="max-width:220px"><label for="w-num">Número de escuelas</label><input class="input" id="w-num" type="number" min="1" max="200" value="${esc(UI.wiz.numEscuelas || '')}" required style="font-size:20px"></div><label style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="w-crear" ${UI.wiz.crear !== false ? 'checked' : ''} style="accent-color:var(--accent)">Crear las escuelas como borrador para completarlas después</label>`},
+  {t:'Supervisor(a) de la zona', d:'Datos de quien encabeza la supervisión.', f:() => `<div class="grid2"><div class="field span2"><label for="w-sup">Nombre del supervisor(a)</label><input class="input" id="w-sup" value="${esc(UI.wiz.supervisor || SESSION.nombre)}" required></div><div class="field"><label for="w-correo">Correo</label><input class="input" id="w-correo" type="email" value="${esc(UI.wiz.correo || SESSION.correo)}"></div><div class="field"><label for="w-tel">Teléfono</label><input class="input" id="w-tel" value="${esc(UI.wiz.telefono || '')}"></div></div>`},
+  {t:'Datos generales', d:'Último paso. Puedes cambiar todo después en Configuración de la zona.', f:() => `<div class="grid2"><div class="field"><label for="w-ciclo">Ciclo escolar</label><input class="input" id="w-ciclo" value="${esc(UI.wiz.ciclo || '2026-2027')}"></div><div class="field"><label for="w-sede">Domicilio de la supervisión</label><input class="input" id="w-sede" value="${esc(UI.wiz.sede || '')}"></div></div><div class="note">Al terminar verás tu panel con una lista de pasos para seguir construyendo tu plataforma: escuelas, personal, grupos y academias.</div>`}
+];
+function viewWizard() {
+  const i = UI.wizStep, s = WIZ[i];
+  return `<div class="wizard"><div class="wiz-card"><div class="brand"><div class="brand-mark">ZEI</div><div><b>Configuración inicial</b><span class="muted">Paso ${i + 1} de ${WIZ.length}</span></div></div>
+    <div class="steps">${WIZ.map((_, j) => `<div class="${j <= i ? 'on' : ''}"></div>`).join('')}</div>
+    <form class="wiz-body" id="f-wiz"><div class="eyebrow">Paso ${i + 1}</div><h2>${s.t}</h2><p class="muted">${s.d}</p>${s.f()}<div class="err" id="w-err"></div>
+    <div class="wiz-foot"><button class="btn" type="button" data-act="wiz-back" ${i === 0 ? 'disabled' : ''}>Anterior</button><button class="btn primary" type="submit">${i === WIZ.length - 1 ? 'Terminar y entrar' : 'Siguiente'}</button></div></form></div></div>`;
+}
+function wizCollect() {
+  const v = id => $('#' + id)?.value?.trim();
+  const i = UI.wizStep;
+  if (i === 0) { if (!v('w-nombre')) return 'Escribe el nombre de la zona.'; Object.assign(UI.wiz, {nombre:v('w-nombre'), clave:v('w-clave'), sector:v('w-sector')}); }
+  if (i === 1) { const c = $('input[name=w-nivel]:checked'); if (!c) return 'Elige un nivel educativo.'; UI.wiz.nivel = c.value; }
+  if (i === 2) Object.assign(UI.wiz, {estado:v('w-estado'), municipio:v('w-municipio')});
+  if (i === 3) { const n = Number(v('w-num')); if (!n || n < 1) return 'Escribe cuántas escuelas tiene la zona.'; UI.wiz.numEscuelas = n; UI.wiz.crear = $('#w-crear').checked; }
+  if (i === 4) { if (!v('w-sup')) return 'Escribe el nombre del supervisor(a).'; Object.assign(UI.wiz, {supervisor:v('w-sup'), correo:v('w-correo'), telefono:v('w-tel')}); }
+  if (i === 5) Object.assign(UI.wiz, {ciclo:v('w-ciclo'), sede:v('w-sede')});
+  return null;
+}
+
+/* ================= Estructura de la app ================= */
+function shell(content) {
+  const al = alertas();
+  const lic = S.licencia;
+  return `<div class="app" id="app"><div class="scrim" data-act="menu"></div>
+  <aside class="side"><div class="brand"><div class="brand-mark">ZEI</div><div><b>Zona Escolar Inteligente</b><span>${esc(S.zona.nombre)}</span></div></div>
+    <nav class="nav" aria-label="Módulos"><div class="nav-label">Módulos</div>
+      ${VIEWS.filter(v => canView(v.id)).map(v => `<a href="#${v.id}" data-go="${v.id}" ${route() === v.id ? 'aria-current="page"' : ''}>${ic(v.icon)}${esc(v.label)}<span class="mnum">M${v.m}</span></a>`).join('')}
+    </nav>
+    <div class="side-foot"><div class="lic"><b>${esc(lic?.plan || 'Sin licencia')}</b>KEY ${esc(mask(lic?.key))}<br>Vigente hasta ${fmtD(lic?.vigencia)}</div><span>${esc(SESSION.nombre)}</span></div>
+  </aside>
+  <div style="min-width:0;display:flex;flex-direction:column">
+    <header class="top"><button class="icon-btn menu-btn" data-act="menu" aria-label="Abrir menú">${ic('menu')}</button>
+      <div class="crumb"><b>${esc(VIEWS.find(v => v.id === route())?.label || '')}</b><span>${esc(S.zona.nombre)} · ${esc(S.zona.nivel)} · ${esc(S.zona.estado)}</span></div>
+      <label class="rolesel"><span>Ver como</span><select id="role-sel" aria-label="Ver como">${Object.entries(ROLES).map(([k, v]) => `<option value="${k}" ${k === ROLE ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
+      <button class="icon-btn" data-act="alerts" aria-label="Alertas">${ic('bell')}${al.length ? `<span class="badge num">${al.length}</span>` : ''}</button>
+      <button class="icon-btn" data-act="theme" aria-label="Cambiar tema">${ic(isDark() ? 'sun' : 'moon')}</button>
+      <button class="icon-btn" data-act="logout" aria-label="Cerrar sesión">${ic('out')}</button>
+    </header>
+    <main class="main" id="main">${content}</main>
+  </div></div>`;
+}
+const isDark = () => { const a = document.documentElement.getAttribute('data-theme'); return a ? a === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; };
+function route() { const h = location.hash.replace('#', ''); const v = VIEWS.find(x => x.id === h) ? h : 'inicio'; return canView(v) ? v : 'inicio'; }
+function go(v, tab) { if (tab) UI.tab[v] = tab; if (location.hash !== '#' + v) location.hash = v; else render(); window.scrollTo(0, 0); }
+
+function render() {
+  const root = $('#root');
+  if (!SESSION) { root.innerHTML = viewLanding(); return; }
+  if (!S.licencia) { root.innerHTML = viewActivate(); return; }
+  if (!S.zona.configurada) { root.innerHTML = viewWizard(); return; }
+  const r = route();
+  const V = {inicio:viewInicio, zona:viewZona, acompanamiento:viewAcomp, docente:viewDocente, cte:viewCTE, ia:viewIA, repositorio:viewRepo, reportes:viewReportes, seguridad:viewSeguridad}[r];
+  const y = window.scrollY;
+  root.innerHTML = shell(V());
+  window.scrollTo(0, y);
+  $$('[data-search]').forEach(i => fillTable(i.dataset.search));
+  if (r === 'ia') $('#ia-avail').textContent = SAMPLE ? 'La IA usa tu cuenta de Claude; la primera vez se te pedirá autorizarla.' : 'El asistente de IA necesita conectarse a un servicio de inteligencia artificial. En esta versión de GitHub todavía no está conectado.';
+}
+
+/* ================= Eventos ================= */
+document.addEventListener('click', async e => {
+  const t = e.target.closest('[data-go],[data-act],[data-auth],[data-subtab],[data-folder-sel],[data-rep],[data-exp],[data-ia]');
+  if (!t) return;
+  if (t.dataset.go) { e.preventDefault(); $('#app')?.classList.remove('open'); closeModal(); go(t.dataset.go, t.dataset.tab); return; }
+  if (t.dataset.auth) { UI.authTab = t.dataset.auth; render(); return; }
+  if (t.dataset.subtab) { UI.tab[t.dataset.subtab] = t.dataset.k; render(); return; }
+  if (t.dataset.folderSel) { UI.folder = t.dataset.folderSel; render(); return; }
+  if (t.dataset.rep) { UI.rep = t.dataset.rep; render(); return; }
+  if (t.dataset.exp) { t.disabled = true; try { await exportReport(t.dataset.exp); } finally { t.disabled = false; } return; }
+  if (t.dataset.ia) {
+    const a = t.dataset.ia;
+    if (a === 'edit') { if (UI.iaEdit) UI.iaOut = $('#ia-text').value; UI.iaEdit = !UI.iaEdit; render(); return; }
+    if (UI.iaEdit) UI.iaOut = $('#ia-text').value;
+    if (a === 'copy') { try { await navigator.clipboard.writeText(UI.iaOut); toast('Texto copiado'); } catch { UI.iaEdit = true; render(); $('#ia-text').select(); toast('Selecciona y copia el texto'); } }
+    if (a === 'repo') { S.repositorio.push({id:uid(), nombre:iaDocTitle() + '.docx', carpeta:'Informes', tipo:'txt', size:0, fecha:isoToday(), autor:SESSION.nombre, contenido:UI.iaOut}); log('Guardó documento de IA en Informes'); save(); toast('Guardado en Repositorio › Informes'); }
+    if (a === 'docx') saveFile(iaDocTitle() + '.docx', await makeDocx(iaDocTitle(), UI.iaOut));
+    if (a === 'pdf') saveFile(iaDocTitle() + '.pdf', pdfText(iaDocTitle(), UI.iaOut));
+    return;
+  }
+  const act = t.dataset.act;
+  if (act === 'close') return closeModal();
+  if (act === 'menu') return $('#app').classList.toggle('open');
+  if (act === 'add') return openForm(t.dataset.ent);
+  if (act === 'edit') return openForm(t.dataset.ent, t.dataset.id);
+  if (act === 'del') return askDelete(t, t.dataset.ent, t.dataset.id);
+  if (act === 'theme') { document.documentElement.setAttribute('data-theme', isDark() ? 'light' : 'dark'); store.set('zei-theme', document.documentElement.getAttribute('data-theme')); render(); return; }
+  if (act === 'alerts') { modal(`<div class="modal-h"><h3>Alertas automáticas</h3><button class="icon-btn" data-act="close" aria-label="Cerrar">${ic('x')}</button></div><div class="modal-b">${alertsHTML(alertas(), 50)}</div>`); return; }
+  if (act === 'logout') { SESSION = null; store.del('zei-session'); location.hash = ''; render(); return; }
+  if (act === 'demo') {
+    S = demoData(); store.set('zei-data', S);
+    SESSION = {nombre:'Mtra. Laura Hernández Cruz', correo:'supervision048@ejemplo.mx', demo:true}; store.set('zei-session', SESSION);
+    ROLE = 'supervisor'; store.set('zei-role', ROLE); log('Abrió la demostración'); save(); location.hash = 'inicio'; render(); return;
+  }
+  if (act === 'gen-key') { const k = genKey(); const inp = $('#k-in') || $('#relic-key'); inp.value = k; toast('KEY de prueba generada'); return; }
+  if (act === 'wiz-back') { UI.wizStep = Math.max(0, UI.wizStep - 1); render(); return; }
+  if (act === 'cumplir') { const a = S.acuerdos.find(x => x.id === t.dataset.id); a.estado = 'Cumplido'; log('Marcó acuerdo como cumplido: ' + a.acuerdo); save(); toast('Acuerdo cumplido'); render(); return; }
+  if (act === 'ia-docente') { UI.iaType = 'intervencion'; UI.iaDoc = t.dataset.name; UI.iaEsc = S.personal.find(p => p.nombre === t.dataset.name)?.escuela || 'Toda la zona'; UI.iaOut = ''; go('ia'); return; }
+  if (act === 'ia-minuta') { const s = S.sesiones.find(x => x.id === t.dataset.id); UI.iaType = 'minuta'; UI.iaSes = `${s.sesion} · ${fmtD(s.fecha)}`; UI.iaEsc = 'Toda la zona'; UI.iaDoc = 'Ninguno en particular'; UI.iaOut = ''; go('ia'); return; }
+  if (act === 'open-file') return openFile(t.dataset.id);
+  if (act === 'dl-file' || act === 'dl-file-pdf') {
+    const f = S.repositorio.find(r => r.id === t.dataset.id);
+    if (f.contenido) { const base = f.nombre.replace(/\.docx$/, ''); return act === 'dl-file' ? saveFile(base + '.docx', await makeDocx(base, f.contenido)) : saveFile(base + '.pdf', pdfText(base, f.contenido)); }
+    return saveFile(f.nombre, FILES.get(f.id));
+  }
+  if (act === 'del-file') { if (t.dataset.confirm) { S.repositorio = S.repositorio.filter(r => r.id !== t.dataset.id); FILES.delete(t.dataset.id); log('Eliminó un archivo del repositorio'); save(); render(); toast('Archivo eliminado'); } else { t.dataset.confirm = 1; t.innerHTML = '¿Eliminar? Sí'; t.classList.remove('ghost'); } return; }
+  if (act === 'snap') { const snaps = store.get('zei-snaps', []); snaps.unshift({t:Date.now(), data:S}); store.set('zei-snaps', snaps.slice(0, 5)); log('Creó respaldo manual'); store.set('zei-data', S); toast('Respaldo creado'); render(); return; }
+  if (act === 'restore') {
+    if (!t.dataset.confirm) { t.dataset.confirm = 1; t.textContent = '¿Restaurar? Sí'; t.classList.add('primary'); return; }
+    const s = store.get('zei-snaps', [])[Number(t.dataset.i)]; if (s) { S = s.data; log('Restauró un respaldo automático'); store.set('zei-data', S); toast('Respaldo restaurado'); render(); }
+  }
+});
+document.addEventListener('input', e => {
+  if (e.target.dataset.search) { UI.q[e.target.dataset.search] = e.target.value; fillTable(e.target.dataset.search); }
+  if (e.target.name === 'iatype') { UI.iaType = e.target.value; $('#ia-title').textContent = IA_TYPES[UI.iaType].t; }
+});
+document.addEventListener('change', e => {
+  if (e.target.id === 'role-sel') { ROLE = e.target.value; store.set('zei-role', ROLE); toast(`Viendo la plataforma como ${ROLES[ROLE]}`); if (!canView(route())) location.hash = 'inicio'; render(); }
+  if (e.target.id === 'file-in' && e.target.files.length) addFiles(e.target.files, $('#drop').dataset.folder);
+});
+document.addEventListener('dragover', e => { const d = e.target.closest?.('#drop'); if (d) { e.preventDefault(); d.classList.add('over'); } });
+document.addEventListener('dragleave', e => { const d = e.target.closest?.('#drop'); if (d) d.classList.remove('over'); });
+document.addEventListener('drop', e => { const d = e.target.closest?.('#drop'); if (d) { e.preventDefault(); d.classList.remove('over'); if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files, d.dataset.folder); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); $('#app')?.classList.remove('open'); } });
+document.addEventListener('submit', async e => {
+  const f = e.target;
+  if (f.id === 'ent-form') return;
+  e.preventDefault();
+  const v = id => $('#' + id).value.trim();
+  if (f.id === 'f-login') {
+    const users = store.get('zei-users', {}); const u = users[v('l-mail').toLowerCase()];
+    if (!u || u.hash !== await sha256(u.salt + $('#l-pass').value)) { $('#l-err').textContent = 'El correo o la contraseña no coinciden. Revisa e intenta de nuevo.'; return; }
+    SESSION = {nombre:u.nombre, correo:v('l-mail').toLowerCase()}; store.set('zei-session', SESSION);
+    load(); ROLE = 'supervisor'; log('Inició sesión'); save(); render(); return;
+  }
+  if (f.id === 'f-reg') {
+    if ($('#r-p1').value !== $('#r-p2').value) { $('#r-err').textContent = 'Las contraseñas no coinciden.'; return; }
+    const users = store.get('zei-users', {}); const mail = v('r-mail').toLowerCase();
+    if (users[mail]) { $('#r-err').textContent = 'Ya existe una cuenta con este correo. Inicia sesión.'; return; }
+    const salt = uid() + uid();
+    users[mail] = {nombre:v('r-nom'), salt, hash:await sha256(salt + $('#r-p1').value)}; store.set('zei-users', users);
+    SESSION = {nombre:v('r-nom'), correo:mail}; store.set('zei-session', SESSION);
+    S = emptyData(); store.set('zei-data', S); ROLE = 'supervisor'; store.set('zei-role', ROLE); render(); toast('Cuenta creada'); return;
+  }
+  if (f.id === 'f-rec') {
+    const users = store.get('zei-users', {}); const mail = v('rc-mail').toLowerCase(); const data = store.get('zei-data', null);
+    if (!users[mail]) { $('#rc-err').textContent = 'No encontramos una cuenta con ese correo.'; return; }
+    if (!data?.licencia || data.licencia.key !== v('rc-key').toUpperCase()) { $('#rc-err').textContent = 'La KEY no corresponde a la licencia de esta cuenta.'; return; }
+    users[mail].salt = uid() + uid(); users[mail].hash = await sha256(users[mail].salt + $('#rc-p').value); store.set('zei-users', users);
+    UI.authTab = 'login'; render(); toast('Contraseña actualizada. Ya puedes iniciar sesión.'); return;
+  }
+  if (f.id === 'f-key' || f.id === 'relic') {
+    const inp = f.id === 'f-key' ? 'k-in' : 'relic-key', err = f.id === 'f-key' ? 'k-err' : 'relic-err';
+    const k = validKey(v(inp));
+    if (!k) { $('#' + err).textContent = 'La KEY no es válida. Revisa que tenga el formato ZEI-XXXX-XXXX-XXXX-XXXX.'; return; }
+    const vig = new Date(); vig.setFullYear(vig.getFullYear() + 1);
+    S.licencia = {key:k, plan:k.includes('DEMO') ? 'Zona (demostración)' : 'Zona Escolar · anual', activada:isoToday(), vigencia:`${vig.getFullYear()}-${String(vig.getMonth() + 1).padStart(2, '0')}-${String(vig.getDate()).padStart(2, '0')}`};
+    log('Activó la licencia'); save(); store.set('zei-data', S); toast('Licencia activada'); render(); return;
+  }
+  if (f.id === 'f-wiz') {
+    const er = wizCollect(); if (er) { $('#w-err').textContent = er; return; }
+    if (UI.wizStep < WIZ.length - 1) { UI.wizStep++; render(); return; }
+    const {crear, ...z} = UI.wiz;
+    S.zona = {...S.zona, ...z, configurada:true};
+    if (crear) for (let i = 1; i <= z.numEscuelas; i++) S.escuelas.push({id:uid(), nombre:`Escuela ${i} (por completar)`, cct:'', turno:'Matutino', localidad:'', matricula:''});
+    log('Completó la configuración inicial'); store.set('zei-data', S); save(); location.hash = 'inicio'; render(); toast('¡Tu plataforma está lista!'); return;
+  }
+  if (f.id === 'zona-form') {
+    new FormData(f).forEach((val, k) => S.zona[k] = k === 'numEscuelas' ? Number(val) : val);
+    log('Actualizó los datos de la zona'); save(); toast('Datos de la zona guardados'); render(); return;
+  }
+  if (f.id === 'bk-exp') {
+    if ($('#bk-p1').value !== $('#bk-p2').value) { $('#bk-err').textContent = 'Las contraseñas no coinciden.'; return; }
+    const txt = await encryptBackup($('#bk-p1').value); log('Exportó respaldo cifrado'); save();
+    return saveFile(`Respaldo cifrado ${S.zona.nombre} ${isoToday()}.json`, txt);
+  }
+  if (f.id === 'bk-imp') {
+    try { const txt = await $('#bk-file').files[0].text(); const d = await decryptBackup(txt, $('#bk-p3').value); S = d; log('Restauró un respaldo cifrado'); store.set('zei-data', S); toast('Respaldo restaurado'); render(); }
+    catch { $('#bk-err2').textContent = 'No se pudo abrir el respaldo. Revisa el archivo y la contraseña.'; }
+  }
+});
+document.addEventListener('click', e => { const b = e.target.closest('#ia-go,#ia-stop'); if (!b) return; if (b.id === 'ia-go') runIA(); else iaCtl?.abort(); });
+window.addEventListener('hashchange', () => SESSION && render());
+
+/* ================= Inicio ================= */
+(function init() {
+  const th = store.get('zei-theme', null); if (th) document.documentElement.setAttribute('data-theme', th);
+  load();
+  render();
+  if (window.claude?.use) {
+    window.claude.use('sample').then(s => { SAMPLE = s; if (route() === 'ia' && $('#ia-avail')) render(); }).catch(() => {});
+    window.claude.use('downloads').then(d => { DL = d; }).catch(() => {});
+  }
+})();
+</script>
+
+</body>
+</html>
